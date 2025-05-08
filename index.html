@@ -285,72 +285,59 @@
       }
     }
 
-    async function submitForm() {
-  // รับค่าจากฟอร์ม
+    function submitForm() {
       const studentId = document.getElementById("studentId").value.trim();
       const studentName = document.getElementById("studentName").value.trim();
       const chanPee = document.getElementById("chanPee").value;
       const studentMajor = document.getElementById("studentMajor").value;
       let activity = document.getElementById("activity").value;
-  
-  // ถ้าเลือกกิจกรรมอื่นๆ
       if (activity === "other") {
         activity = document.getElementById("customActivity").value.trim();
       }
 
       const imageFile = document.getElementById("imageInput").files[0];
 
-  // ตรวจสอบข้อมูลครบถ้วน
       if (!studentId || !studentName || !chanPee || !studentMajor || !activity || !selectedLatLng || !imageFile) {
         alert("กรุณากรอกข้อมูลให้ครบทุกช่องและเลือกกิจกรรม");
         return;
       }
 
-      try {
-    // สร้าง FormData object เพื่อส่งข้อมูล
-        const formData = new FormData();
-        formData.append('studentId', studentId);
-        formData.append('studentName', studentName);
-        formData.append('chanPee', chanPee);
-        formData.append('studentMajor', studentMajor);
-        formData.append('activity', activity);
-        formData.append('lat', selectedLatLng.lat.toFixed(5));
-        formData.append('lng', selectedLatLng.lng.toFixed(5));
-        formData.append('image', imageFile);
-    
-        // ส่งข้อมูลไปยังเซิร์ฟเวอร์
-        const response = await fetch('submit.php', {
-          method: 'POST',
-          body: formData
-        });
-    
-        const result = await response.json();
-    
-        if (result.status === 'success') {
-          showSuccessModal();
-          resetForm();
-        } else {
-          alert("เกิดข้อผิดพลาด: " + (result.message || 'ไม่ทราบสาเหตุ'));
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('เกิดข้อผิดพลาดในการส่งข้อมูล');
+      let existingSubmissions = activityGroups.get(activity) || [];
+      if (existingSubmissions.find(sub => sub.studentId === studentId)) {
+        alert("คุณได้ส่งข้อมูลกิจกรรมนี้ไปแล้ว");
+        return;
       }
-    }
-    
-    // ฟังก์ชันรีเซ็ตฟอร์ม
-    function resetForm() {
-      document.getElementById("studentId").value = "";
-      document.getElementById("studentName").value = "";
-      document.getElementById("chanPee").value = "";
-      document.getElementById("studentMajor").value = "";
-      document.getElementById("activity").value = "";
-      document.getElementById("customActivity").value = "";
-      document.getElementById("customActivity").classList.add("hidden");
-      document.getElementById("imageInput").value = "";
-      document.getElementById("preview").classList.add("hidden");
-      document.getElementById("preview").src = "";
-    }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const imageBase64 = reader.result;
+        const data = {
+          studentId,
+          studentName,
+          chanPee,
+          studentMajor,
+          activity,
+          lat: selectedLatLng.lat.toFixed(5),
+          lng: selectedLatLng.lng.toFixed(5),
+          imageBase64,
+          timestamp: new Date().toLocaleString()
+        };
+
+        existingSubmissions.push(data);
+        activityGroups.set(activity, existingSubmissions);
+        renderActivityList();
+        
+        document.getElementById("studentId").value = "";
+        document.getElementById("studentName").value = "";
+        document.getElementById("chanPee").value = "";
+        document.getElementById("studentMajor").value = "";
+        document.getElementById("activity").value = "";
+        document.getElementById("customActivity").value = "";
+        document.getElementById("customActivity").classList.add("hidden");
+        document.getElementById("imageInput").value = "";
+        document.getElementById("preview").classList.add("hidden");
+        document.getElementById("preview").src = "";
+        
         showSuccessModal();
       };
     
@@ -466,4 +453,4 @@
     </div>
   </div>
 </body>
-</html>
+</html> 
