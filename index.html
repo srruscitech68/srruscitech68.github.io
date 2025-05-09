@@ -404,12 +404,7 @@
         alert("เกิดข้อผิดพลาด: " + error.message);
       }
     }
-          .catch(error => {
-            console.error("Error checking existing submissions:", error);
-            alert("เกิดข้อผิดพลาดในการตรวจสอบข้อมูล");
-          });
-      };
-    
+
       reader.readAsDataURL(imageFile);
     }
     
@@ -492,16 +487,17 @@
         );
       });
     }
-    function renderActivityList(activities) {
+   function renderActivityList(activities) {
       const listEl = document.getElementById("activityList");
       
       // ไม่ลบข้อมูลเดิมทั้งหมดเพื่อให้สามารถเพิ่มข้อมูลได้
       if (currentLimit <= 20) {
         listEl.innerHTML = "";
-
+      }
+    
       for (const [activity, submissions] of Object.entries(activities)) {
         const activitySection = document.createElement("div");
-
+    
         const header = document.createElement("div");
         header.className = "font-bold text-blue-700 cursor-pointer flex items-center";
         header.innerHTML = `<span class="flex-1">${activity}</span><span class="text-sm text-gray-500">(${submissions.length} คน)</span>`;
@@ -509,25 +505,25 @@
           const body = header.nextElementSibling;
           body.classList.toggle("hidden");
         };
-
+    
         const body = document.createElement("div");
         body.className = "ml-3 mt-2 space-y-2 hidden";
-
+    
         const majorsMap = {};
-
+    
         submissions.forEach((data) => {
           if (!majorsMap[data.studentMajor]) {
             majorsMap[data.studentMajor] = [];
           }
           majorsMap[data.studentMajor].push(data);
         });
-
+    
         for (const [major, students] of Object.entries(majorsMap)) {
           const majorHeader = document.createElement("div");
           majorHeader.className = "font-semibold text-green-600";
           majorHeader.textContent = `• ${major}`;
           body.appendChild(majorHeader);
-
+    
           students.forEach((data) => {
             const card = document.createElement("div");
             card.className = "bg-white rounded shadow p-2 cursor-pointer hover:bg-gray-100 text-sm ml-4";
@@ -551,12 +547,13 @@
             body.appendChild(card);
           });
         }
-
+    
         activitySection.appendChild(header);
         activitySection.appendChild(body);
         listEl.appendChild(activitySection);
       }
     }
+
     function addLoadMoreButton() {
   // ลบปุ่มเดิมถ้ามี
       const oldButton = document.getElementById('loadMoreButton');
