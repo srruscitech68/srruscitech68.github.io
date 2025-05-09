@@ -392,6 +392,10 @@
         document.getElementById("imageInput").value = "";
         document.getElementById("preview").classList.add("hidden");
         document.getElementById("preview").src = "";
+        const submitButton = document.querySelector('button[onclick="submitForm()"]');
+        const originalButtonText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = "กำลังอัปโหลด...";
         
         // 6. แสดงข้อความสำเร็จ
         showSuccessModal();
@@ -403,9 +407,6 @@
         console.error("Error:", error);
         alert("เกิดข้อผิดพลาด: " + error.message);
       }
-    }
-
-      reader.readAsDataURL(imageFile);
     }
     
     let currentLimit = 20; // จำนวนรายการที่โหลดแต่ละครั้ง
@@ -487,7 +488,7 @@
         );
       });
     }
-   function renderActivityList(activities) {
+    function renderActivityList(activities) {
       const listEl = document.getElementById("activityList");
       
       // ไม่ลบข้อมูลเดิมทั้งหมดเพื่อให้สามารถเพิ่มข้อมูลได้
@@ -553,7 +554,6 @@
         listEl.appendChild(activitySection);
       }
     }
-
     function addLoadMoreButton() {
   // ลบปุ่มเดิมถ้ามี
       const oldButton = document.getElementById('loadMoreButton');
@@ -585,16 +585,24 @@
       document.getElementById("aboutModal").classList.add("hidden");
     }
     
+// แทนที่ showSuccessModal() ด้วย
     function showSuccessModal() {
-      document.getElementById("successModal").classList.remove("hidden");
+      const successModal = document.getElementById("successModal");
+      successModal.classList.remove("hidden");
       
+      // ปิดอัตโนมัติหลังจาก 3 วินาที
       setTimeout(() => {
-        closeSuccessModal();
+        successModal.classList.add("hidden");
       }, 3000);
     }
     
     function closeSuccessModal() {
       document.getElementById("successModal").classList.add("hidden");
+    }
+    
+    finally {
+      submitButton.disabled = false;
+      submitButton.textContent = originalButtonText;
     }
   </script>
 
