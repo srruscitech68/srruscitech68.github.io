@@ -12,6 +12,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
   
   <style>
     body {
@@ -232,6 +233,7 @@
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const auth = firebase.auth();
+    const storage = firebase.storage();
     
     let map;
     let marker;
@@ -319,29 +321,30 @@
       }
     }
 
-    function submitForm() {
+    async function submitForm() {
       const studentId = document.getElementById("studentId").value.trim();
       const studentName = document.getElementById("studentName").value.trim();
       const chanPee = document.getElementById("chanPee").value;
       const studentMajor = document.getElementById("studentMajor").value;
       let activity = document.getElementById("activity").value;
+      
       if (activity === "other") {
         activity = document.getElementById("customActivity").value.trim();
       }
-
+    
       const imageFile = document.getElementById("imageInput").files[0];
-
+    
+      // ตรวจสอบข้อมูลที่จำเป็น
       if (!studentId || !studentName || !chanPee || !studentMajor || !activity || !selectedLatLng || !imageFile) {
         alert("กรุณากรอกข้อมูลให้ครบทุกช่องและเลือกกิจกรรม");
         return;
       }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const imageBase64 = reader.result;
-        const timestamp = new Date().getTime();
+    
+      try {
+        // 1. อัปโหลดรูปภาพไปยัง Firebase Storage
+        const imageUrl = await uploadImage(imageFile);
         
-        // สร้างข้อมูลที่จะบันทึก
+        // 2. เตรียมข้อมูลกิจกรรม
         const activityData = {
           studentId,
           studentName,
@@ -350,54 +353,57 @@
           activity,
           lat: selectedLatLng.lat.toFixed(5),
           lng: selectedLatLng.lng.toFixed(5),
-          imageBase64,
+          imageUrl, // เก็บ URL ของรูปภาพแทน Base64
           timestamp: new Date().toLocaleString(),
-          timestampValue: timestamp
+          timestampValue: Date.now()
         };
         
-        // ตรวจสอบก่อนว่าไม่เคยส่งข้อมูลนี้มาก่อน
-        database.ref('activities').orderByChild('studentId').equalTo(studentId).once('value')
-          .then(snapshot => {
-            let alreadySubmitted = false;
-            snapshot.forEach(childSnapshot => {
-              const data = childSnapshot.val();
-              if (data.activity === activity) {
-                alreadySubmitted = true;
-              }
-            });
-            
-            if (alreadySubmitted) {
-              alert("คุณได้ส่งข้อมูลกิจกรรมนี้ไปแล้ว");
-              return;
-            }
-            
-            // บันทึกข้อมูลใหม่
-            const newActivityRef = database.ref('activities').push();
-            newActivityRef.set(activityData)
-              .then(() => {
-                // เคลียร์ฟอร์ม
-                document.getElementById("studentId").value = "";
-                document.getElementById("studentName").value = "";
-                document.getElementById("chanPee").value = "";
-                document.getElementById("studentMajor").value = "";
-                document.getElementById("activity").value = "";
-                document.getElementById("customActivity").value = "";
-                document.getElementById("customActivity").classList.add("hidden");
-                document.getElementById("imageInput").value = "";
-                document.getElementById("preview").classList.add("hidden");
-                document.getElementById("preview").src = "";
-                
-                // แสดงข้อความสำเร็จ
-                showSuccessModal();
-                
-                // โหลดข้อมูลใหม่
-                loadActivities();
-              })
-              .catch(error => {
-                console.error("Error saving activity:", error);
-                alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
-              });
-          })
+        // 3. ตรวจสอบว่ามีกิจกรรมนี้อยู่แล้วหรือไม่
+        const snapshot = await database.ref('activities')
+          .orderByChild('studentId')
+          .equalTo(studentId)
+          .once('value');
+        
+        let alreadySubmitted = false;
+        snapshot.forEach(childSnapshot => {
+          const data = childSnapshot.val();
+          if (data.activity === activity) {
+            alreadySubmitted = true;
+          }
+        });
+        
+        if (alreadySubmitted) {
+          alert("คุณได้ส่งข้อมูลกิจกรรมนี้ไปแล้ว");
+          return;
+        }
+        
+        // 4. บันทึกข้อมูลใหม่
+        const newActivityRef = database.ref('activities').push();
+        await newActivityRef.set(activityData);
+        
+        // 5. เคลียร์ฟอร์ม
+        document.getElementById("studentId").value = "";
+        document.getElementById("studentName").value = "";
+        document.getElementById("chanPee").value = "";
+        document.getElementById("studentMajor").value = "";
+        document.getElementById("activity").value = "";
+        document.getElementById("customActivity").value = "";
+        document.getElementById("customActivity").classList.add("hidden");
+        document.getElementById("imageInput").value = "";
+        document.getElementById("preview").classList.add("hidden");
+        document.getElementById("preview").src = "";
+        
+        // 6. แสดงข้อความสำเร็จ
+        showSuccessModal();
+        
+        // 7. โหลดข้อมูลใหม่
+        loadActivities();
+        
+      } catch (error) {
+        console.error("Error:", error);
+        alert("เกิดข้อผิดพลาด: " + error.message);
+      }
+    }
           .catch(error => {
             console.error("Error checking existing submissions:", error);
             alert("เกิดข้อผิดพลาดในการตรวจสอบข้อมูล");
@@ -407,27 +413,91 @@
       reader.readAsDataURL(imageFile);
     }
     
-    function loadActivities() {
-      database.ref('activities').orderByChild('timestampValue').once('value')
-        .then(snapshot => {
-          const activities = {};
-          snapshot.forEach(childSnapshot => {
-            const data = childSnapshot.val();
-            if (!activities[data.activity]) {
-              activities[data.activity] = [];
-            }
-            activities[data.activity].push(data);
-          });
-          renderActivityList(activities);
-        })
-        .catch(error => {
-          console.error("Error loading activities:", error);
-        });
-    }
+    let currentLimit = 20; // จำนวนรายการที่โหลดแต่ละครั้ง
+    let lastKey = null; // คีย์ของรายการสุดท้ายที่โหลด
+
+    function loadActivities(limit = currentLimit, startAfter = null) {
+      let query = database.ref('activities')
+        .orderByChild('timestampValue')
+        .limitToLast(limit);
     
+      if (startAfter) {
+        query = query.endBefore(startAfter);
+      }
+      
+      query.once('value').then(snapshot => {
+        const activities = {};
+        let count = 0;
+        
+        snapshot.forEach(childSnapshot => {
+          const data = childSnapshot.val();         
+          if (!activities[data.activity]) {
+            activities[data.activity] = [];
+          }
+          activities[data.activity].push(data);
+          
+          count++;
+          if (count === 1) {
+            lastKey = childSnapshot.key; // บันทึกคีย์ของรายการแรก (เนื่องจากเรียงจากใหม่ไปเก่า)
+          }
+        });
+        
+        renderActivityList(activities);
+        
+        if (count >= limit) {
+          addLoadMoreButton();
+        }
+      }).catch(error => {
+        console.error("Error loading activities:", error);
+      });
+    }
+    function uploadImage(file) {
+      return new Promise((resolve, reject) => {
+        // ตรวจสอบประเภทไฟล์
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!validTypes.includes(file.type)) {
+          reject(new Error('ประเภทไฟล์ไม่รองรับ อนุญาตเฉพาะ JPEG, PNG, GIF'));
+          return;
+        }
+        
+        // ตรวจสอบขนาดไฟล์ (ไม่เกิน 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+          reject(new Error('ขนาดไฟล์ใหญ่เกินไป อนุญาตสูงสุด 2MB'));
+          return;
+        }
+        
+        // สร้างชื่อไฟล์ที่ไม่ซ้ำกัน
+        const fileName = `activity_${Date.now()}_${file.name}`;
+        const storageRef = firebase.storage().ref();
+        const fileRef = storageRef.child(`activity_images/${fileName}`);
+        
+        // เริ่มอัปโหลด
+        const uploadTask = fileRef.put(file);
+        
+        uploadTask.on('state_changed',
+          (snapshot) => {
+            // สามารถแสดง progress bar ได้ที่นี่
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log('Upload is ' + progress + '% done');
+          },
+          (error) => {
+            reject(new Error('เกิดข้อผิดพลาดในการอัปโหลด: ' + error.message));
+          },
+          () => {
+            // เมื่ออัปโหลดสำเร็จ
+            uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+              resolve(downloadURL);
+            });
+          }
+        );
+      });
+    }
     function renderActivityList(activities) {
       const listEl = document.getElementById("activityList");
-      listEl.innerHTML = "";
+      
+      // ไม่ลบข้อมูลเดิมทั้งหมดเพื่อให้สามารถเพิ่มข้อมูลได้
+      if (currentLimit <= 20) {
+        listEl.innerHTML = "";
 
       for (const [activity, submissions] of Object.entries(activities)) {
         const activitySection = document.createElement("div");
@@ -474,7 +544,7 @@
                 <p><strong>สาขา:</strong> ${data.studentMajor}</p>
                 <p><strong>เวลา:</strong> ${data.timestamp}</p>
                 <p><strong>พิกัด:</strong> ${data.lat}, ${data.lng}</p>
-                <img src="${data.imageBase64}" class="w-full max-w-full h-auto rounded mt-2" />
+                <img src="${data.imageUrl}" class="w-full max-w-full h-auto rounded mt-2" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Not+Found'" />
               `;
               document.getElementById("modal").classList.remove("hidden");
             };
@@ -486,6 +556,24 @@
         activitySection.appendChild(body);
         listEl.appendChild(activitySection);
       }
+    }
+    function addLoadMoreButton() {
+  // ลบปุ่มเดิมถ้ามี
+      const oldButton = document.getElementById('loadMoreButton');
+      if (oldButton) oldButton.remove();
+      
+      const btn = document.createElement('button');
+      btn.id = 'loadMoreButton';
+      btn.textContent = 'โหลดเพิ่มเติม';
+      btn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-4 mx-auto block';
+      btn.onclick = () => {
+        btn.disabled = true;
+        btn.textContent = 'กำลังโหลด...';
+        currentLimit += 20;
+        loadActivities(currentLimit, lastKey);
+      };
+      
+      document.getElementById('activityList').appendChild(btn);
     }
 
     function closeModal() {
