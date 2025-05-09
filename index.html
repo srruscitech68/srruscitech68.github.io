@@ -6,12 +6,12 @@
   <title>ระบบเช็คกิจกรรมคณะวิทยาศาสตร์และเทคโนโลยี</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/compressorjs/1.1.1/compressor.min.js"></script>
   
   <!-- เพิ่ม Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
   
   <style>
     body {
@@ -60,9 +60,6 @@
     height: auto;
     display: block;
     margin: 0 auto;
-    }
-    .fa-spinner {
-    margin-left: 8px;
     }
   </style>
 </head>
@@ -233,11 +230,7 @@
 
     // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
-// แทนที่การ initialize Realtime Database
-// const database = firebase.database();
-
-// ใช้ Firestore แทน
-    const db = firebase.firestore();
+    const database = firebase.database();
     const auth = firebase.auth();
     
     let map;
@@ -326,42 +319,30 @@
       }
     }
 
-    async function submitForm() {
-      try {
-        // Disable ปุ่มเพื่อป้องกันการคลิกซ้ำ
-        const submitBtn = document.querySelector('button[onclick="submitForm()"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = 'กำลังส่งข้อมูล... <i class="fas fa-spinner fa-spin"></i>';
-        
-        // รับค่าจากฟอร์ม
-        const studentId = document.getElementById("studentId").value.trim();
-        const studentName = document.getElementById("studentName").value.trim();
-        const chanPee = document.getElementById("chanPee").value;
-        const studentMajor = document.getElementById("studentMajor").value;
-        let activity = document.getElementById("activity").value;
-        if (activity === "other") {
-          activity = document.getElementById("customActivity").value.trim();
-        }
-    
-        const imageFile = document.getElementById("imageInput").files[0];
-    
-        // ตรวจสอบข้อมูลครบถ้วน
-        if (!studentId || !studentName || !chanPee || !studentMajor || !activity || !selectedLatLng || !imageFile) {
-          alert("กรุณากรอกข้อมูลให้ครบทุกช่องและเลือกกิจกรรม");
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = 'ส่งข้อมูลกิจกรรม';
-          return;
-        }
-    
-        // 1. อัปโหลดรูปภาพไปยัง Firebase Storage
-        const storage = firebase.storage();
-        const storageRef = storage.ref();
-        const imageRef = storageRef.child(`activity_images/${studentId}_${Date.now()}.jpg`);
-        const uploadTask = await imageRef.put(compressedImage);
-        const imageUrl = await uploadTask.ref.getDownloadURL();
-        // 2. บันทึกข้อมูลกิจกรรม
+    function submitForm() {
+      const studentId = document.getElementById("studentId").value.trim();
+      const studentName = document.getElementById("studentName").value.trim();
+      const chanPee = document.getElementById("chanPee").value;
+      const studentMajor = document.getElementById("studentMajor").value;
+      let activity = document.getElementById("activity").value;
+      if (activity === "other") {
+        activity = document.getElementById("customActivity").value.trim();
+      }
+
+      const imageFile = document.getElementById("imageInput").files[0];
+
+      if (!studentId || !studentName || !chanPee || !studentMajor || !activity || !selectedLatLng || !imageFile) {
+        alert("กรุณากรอกข้อมูลให้ครบทุกช่องและเลือกกิจกรรม");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const imageBase64 = reader.result;
         const timestamp = new Date().getTime();
-        await db.collection("activities").add({
+        
+        // สร้างข้อมูลที่จะบันทึก
+        const activityData = {
           studentId,
           studentName,
           chanPee,
@@ -369,82 +350,79 @@
           activity,
           lat: selectedLatLng.lat.toFixed(5),
           lng: selectedLatLng.lng.toFixed(5),
-          imageUrl,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          timestampValue: Date.now()
-        });
-    
-        // ใช้ transaction เพื่อป้องกันการส่งซ้ำ
-        const activityRef = database.ref('activities').push();
-        await activityRef.set(activityData);
-    
-        // 3. เคลียร์ฟอร์มหลังบันทึกสำเร็จ
-        document.getElementById("studentId").value = "";
-        document.getElementById("studentName").value = "";
-        document.getElementById("chanPee").value = "";
-        document.getElementById("studentMajor").value = "";
-        document.getElementById("activity").value = "";
-        document.getElementById("customActivity").value = "";
-        document.getElementById("customActivity").classList.add("hidden");
-        document.getElementById("imageInput").value = "";
-        document.getElementById("preview").classList.add("hidden");
-        document.getElementById("preview").src = "";
-    
-        // 4. แสดงผลสำเร็จ
-        showSuccessModal();
-        loadActivities();
-    
-      } catch (error) {
-        console.error("Error submitting form:", error);
-        alert("เกิดข้อผิดพลาดในการส่งข้อมูล: " + error.message);
-      } finally {
-        // Enable ปุ่มกลับมาเหมือนเดิม
-        const submitBtn = document.querySelector('button[onclick="submitForm()"]');
-        if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = 'ส่งข้อมูลกิจกรรม';
-        }
-      }
-    }
-    
-    // ฟังก์ชันบีบอัดรูปภาพ (optional)
-    async function compressImage(file) {
-      return new Promise((resolve) => {
-        new Compressor(file, {
-          quality: 0.6,
-          maxWidth: 800,
-          maxHeight: 800,
-          success(result) {
-            resolve(result);
-          },
-          error(err) {
-            console.log("Compression error:", err);
-            resolve(file); // หากบีบอัดไม่สำเร็จใช้ไฟล์เดิม
-          },
-        });
-      });
-    }
-    
-    async function loadActivities() {
-      try {
-        const snapshot = await db.collection("activities")
-          .orderBy("timestampValue", "desc")
-          .get();
-    
-        const activities = {};
+          imageBase64,
+          timestamp: new Date().toLocaleString(),
+          timestampValue: timestamp
+        };
         
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          if (!activities[data.activity]) {
-            activities[data.activity] = [];
-          }
-          activities[data.activity].push(data);
-        });
+        // ตรวจสอบก่อนว่าไม่เคยส่งข้อมูลนี้มาก่อน
+        database.ref('activities').orderByChild('studentId').equalTo(studentId).once('value')
+          .then(snapshot => {
+            let alreadySubmitted = false;
+            snapshot.forEach(childSnapshot => {
+              const data = childSnapshot.val();
+              if (data.activity === activity) {
+                alreadySubmitted = true;
+              }
+            });
+            
+            if (alreadySubmitted) {
+              alert("คุณได้ส่งข้อมูลกิจกรรมนี้ไปแล้ว");
+              return;
+            }
+            
+            // บันทึกข้อมูลใหม่
+            const newActivityRef = database.ref('activities').push();
+            newActivityRef.set(activityData)
+              .then(() => {
+                // เคลียร์ฟอร์ม
+                document.getElementById("studentId").value = "";
+                document.getElementById("studentName").value = "";
+                document.getElementById("chanPee").value = "";
+                document.getElementById("studentMajor").value = "";
+                document.getElementById("activity").value = "";
+                document.getElementById("customActivity").value = "";
+                document.getElementById("customActivity").classList.add("hidden");
+                document.getElementById("imageInput").value = "";
+                document.getElementById("preview").classList.add("hidden");
+                document.getElementById("preview").src = "";
+                
+                // แสดงข้อความสำเร็จ
+                showSuccessModal();
+                
+                // โหลดข้อมูลใหม่
+                loadActivities();
+              })
+              .catch(error => {
+                console.error("Error saving activity:", error);
+                alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+              });
+          })
+          .catch(error => {
+            console.error("Error checking existing submissions:", error);
+            alert("เกิดข้อผิดพลาดในการตรวจสอบข้อมูล");
+          });
+      };
     
-        renderActivityList(activities);
-      } catch (error) {
-        console.error("Error loading activities:", error);
-      }
+      reader.readAsDataURL(imageFile);
+    }
+    
+    function loadActivities() {
+      database.ref('activities').orderByChild('timestampValue').once('value')
+        .then(snapshot => {
+          const activities = {};
+          snapshot.forEach(childSnapshot => {
+            const data = childSnapshot.val();
+            if (!activities[data.activity]) {
+              activities[data.activity] = [];
+            }
+            activities[data.activity].push(data);
+          });
+          renderActivityList(activities);
+        })
+        .catch(error => {
+          console.error("Error loading activities:", error);
+        });
     }
     
     function renderActivityList(activities) {
@@ -496,7 +474,7 @@
                 <p><strong>สาขา:</strong> ${data.studentMajor}</p>
                 <p><strong>เวลา:</strong> ${data.timestamp}</p>
                 <p><strong>พิกัด:</strong> ${data.lat}, ${data.lng}</p>
-                <img src="${data.imageUrl}" class="w-full max-w-full h-auto rounded mt-2" onerror="this.src='https://via.placeholder.com/400x300?text=ไม่พบรูปภาพ'" />
+                <img src="${data.imageBase64}" class="w-full max-w-full h-auto rounded mt-2" />
               `;
               document.getElementById("modal").classList.remove("hidden");
             };
