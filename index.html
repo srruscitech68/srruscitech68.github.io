@@ -11,9 +11,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/compressorjs/1.1.1/compressor.min.js"></script>
   
   <!-- เพิ่ม Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
   
   <style>
@@ -236,7 +233,11 @@
 
     // Initialize Firebase
     const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+// แทนที่การ initialize Realtime Database
+// const database = firebase.database();
+
+// ใช้ Firestore แทน
+    const db = firebase.firestore();
     const auth = firebase.auth();
     
     let map;
@@ -356,17 +357,11 @@
         const storage = firebase.storage();
         const storageRef = storage.ref();
         const imageRef = storageRef.child(`activity_images/${studentId}_${Date.now()}.jpg`);
-        
-        // บีบอัดรูปภาพก่อนอัปโหลด (optional)
-        const compressedImage = await compressImage(imageFile);
-        
-        // อัปโหลดไฟล์
         const uploadTask = await imageRef.put(compressedImage);
         const imageUrl = await uploadTask.ref.getDownloadURL();
-    
         // 2. บันทึกข้อมูลกิจกรรม
         const timestamp = new Date().getTime();
-        const activityData = {
+        await db.collection("activities").add({
           studentId,
           studentName,
           chanPee,
@@ -374,10 +369,10 @@
           activity,
           lat: selectedLatLng.lat.toFixed(5),
           lng: selectedLatLng.lng.toFixed(5),
-          imageUrl, // เก็บ URL แทน Base64
-          timestamp: new Date().toLocaleString(),
-          timestampValue: timestamp
-        };
+          imageUrl,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          timestampValue: Date.now()
+        });
     
         // ใช้ transaction เพื่อป้องกันการส่งซ้ำ
         const activityRef = database.ref('activities').push();
@@ -430,22 +425,26 @@
       });
     }
     
-    function loadActivities() {
-      database.ref('activities').orderByChild('timestampValue').once('value')
-        .then(snapshot => {
-          const activities = {};
-          snapshot.forEach(childSnapshot => {
-            const data = childSnapshot.val();
-            if (!activities[data.activity]) {
-              activities[data.activity] = [];
-            }
-            activities[data.activity].push(data);
-          });
-          renderActivityList(activities);
-        })
-        .catch(error => {
-          console.error("Error loading activities:", error);
+    async function loadActivities() {
+      try {
+        const snapshot = await db.collection("activities")
+          .orderBy("timestampValue", "desc")
+          .get();
+    
+        const activities = {};
+        
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (!activities[data.activity]) {
+            activities[data.activity] = [];
+          }
+          activities[data.activity].push(data);
         });
+    
+        renderActivityList(activities);
+      } catch (error) {
+        console.error("Error loading activities:", error);
+      }
     }
     
     function renderActivityList(activities) {
