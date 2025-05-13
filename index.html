@@ -679,6 +679,7 @@
             
             // บันทึกข้อมูลใหม่
             const newActivityRef = database.ref('activities').push();
+            // แก้ไขส่วนท้ายของ script ให้เป็นดังนี้
             newActivityRef.set(activityData)
               .then(() => {
                 // เคลียร์ฟอร์ม
@@ -695,4 +696,102 @@
                 
                 // แสดงข้อความสำเร็จ
                 showSuccessModal();
-                </script>
+                
+                // โหลดกิจกรรมใหม่
+                loadActivities();
+              })
+              .catch(error => {
+                console.error("Error saving activity: ", error);
+                showError("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + error.message);
+              })
+              .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+              });
+            }
+            
+            function showSuccessModal() {
+              document.getElementById('successModal').classList.remove('hidden');
+            }
+            
+            function closeSuccessModal() {
+              document.getElementById('successModal').classList.add('hidden');
+            }
+            
+            function showError(message) {
+              const modalContent = document.getElementById('modalContent');
+              modalContent.innerHTML = `
+                <div class="flex items-center justify-center text-red-500">
+                  <i class="fas fa-exclamation-circle text-3xl mr-2"></i>
+                  <h3 class="text-lg font-bold">เกิดข้อผิดพลาด</h3>
+                </div>
+                <p class="text-center">${message}</p>
+                <div class="text-center mt-4">
+                  <button onclick="closeModal()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
+                    ตกลง
+                  </button>
+                </div>
+              `;
+              document.getElementById('modal').classList.remove('hidden');
+            }
+            
+            function closeModal() {
+              document.getElementById('modal').classList.add('hidden');
+            }
+            
+            function toggleAboutModal() {
+              document.getElementById('aboutModal').classList.toggle('hidden');
+            }
+            
+            function closeAboutModal() {
+              document.getElementById('aboutModal').classList.add('hidden');
+            }
+            
+            function loadActivities() {
+              const activityList = document.getElementById('activityList');
+              activityList.innerHTML = '<p class="text-center text-gray-500 py-4"><i class="fas fa-spinner fa-spin mr-2"></i>กำลังโหลดข้อมูล...</p>';
+              
+              database.ref('activities').orderByChild('timestampValue').limitToLast(20).once('value')
+                .then(snapshot => {
+                  if (!snapshot.exists()) {
+                    activityList.innerHTML = '<p class="text-center text-gray-500 py-4">ยังไม่มีกิจกรรมที่ส่ง</p>';
+                    return;
+                  }
+                  
+                  activityList.innerHTML = '';
+                  const activities = [];
+                  
+                  snapshot.forEach(childSnapshot => {
+                    activities.push(childSnapshot.val());
+                  });
+                  
+                  // เรียงลำดับจากใหม่ไปเก่า
+                  activities.reverse();
+                  
+                  activities.forEach(activity => {
+                    const activityItem = document.createElement('div');
+                    activityItem.className = 'bg-white p-3 rounded-lg border border-gray-200 shadow-sm activity-card';
+                    activityItem.innerHTML = `
+                      <div class="flex justify-between items-start">
+                        <div>
+                          <h3 class="font-bold text-blue-600">${activity.activity}</h3>
+                          <p class="text-sm text-gray-600">${activity.studentName} (${activity.studentId})</p>
+                          <p class="text-xs text-gray-500 mt-1"><i class="fas fa-clock mr-1"></i>${activity.timestamp}</p>
+                        </div>
+                        <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">${activity.chanPee}</span>
+                      </div>
+                    `;
+                    activityList.appendChild(activityItem);
+                  });
+                })
+                .catch(error => {
+                  console.error("Error loading activities: ", error);
+                  activityList.innerHTML = '<p class="text-center text-red-500 py-4">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+                });
+            }
+            
+            // เรียกใช้ initMap เมื่อหน้าเว็บโหลดเสร็จ
+            window.onload = function() {
+              initMap();
+            };
+            </script>
