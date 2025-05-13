@@ -12,20 +12,33 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-storage-compat.js"></script>
+  
+  <!-- เพิ่ม Font Awesome สำหรับไอคอน -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   
   <style>
+    :root {
+      --primary-color: #2563eb;
+      --secondary-color: #10b981;
+      --accent-color: #f59e0b;
+    }
+    
     body {
       background-image: url('https://sv1.img.in.th/7DB9EN.jpeg');
       background-size: cover;
       background-position: center;
       background-attachment: fixed;
       -webkit-tap-highlight-color: transparent;
+      font-family: 'Prompt', sans-serif;
     }
+    
     .overlay {
-      background-color: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(5px);
+      background-color: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
     }
+    
     .modal {
       position: fixed;
       top: 0;
@@ -36,134 +49,284 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 50;
+      z-index: 100;
+      backdrop-filter: blur(5px);
     }
+    
     .modal-content {
       background-color: white;
       padding: 1.5rem;
-      border-radius: 0.5rem;
+      border-radius: 1rem;
       max-width: 95%;
-      max-height: 90%;
+      max-height: 90vh;
       overflow-y: auto;
-      width: 95%;
+      width: 100%;
       margin: 0 auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
+    
     button, a[role="button"] {
       min-height: 48px;
       padding: 12px 16px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
+    
     input, select {
       padding: 12px;
       min-height: 48px;
+      border-radius: 0.5rem;
+      border: 1px solid #e5e7eb;
+      transition: all 0.2s ease;
     }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+    
     .modal-content img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      border-radius: 0.5rem;
+    }
+    
+    /* ปรับปรุงการแสดงผลบนมือถือ */
+    @media (max-width: 640px) {
+      .mobile-flex-col {
+        flex-direction: column;
+      }
+      
+      .mobile-text-center {
+        text-align: center;
+      }
+      
+      .mobile-full-width {
+        width: 100%;
+      }
+      
+      .mobile-p-2 {
+        padding: 0.5rem;
+      }
+      
+      #map {
+        height: 250px;
+      }
+    }
+    
+    /* เอฟเฟกต์เมื่อกดปุ่ม */
+    .btn-active:active {
+      transform: scale(0.98);
+    }
+    
+    /* เอฟเฟกต์ hover สำหรับปุ่ม */
+    .btn-hover:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* การ์ดกิจกรรม */
+    .activity-card {
+      transition: all 0.3s ease;
+    }
+    
+    .activity-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* แถบเลื่อน */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 10px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
     }
   </style>
+  
+  <!-- เพิ่มฟอนต์ไทย -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 </head>
-<body class="min-h-screen text-gray-900">
+<body class="min-h-screen text-gray-900 antialiased">
 
   <!-- Header -->
-  <header class="w-full flex flex-col items-center py-4 bg-white bg-opacity-80 shadow-md">
-    <img src="https://sv1.img.in.th/7DBsh3.png" alt="โลโก้ มรภ.สุรินทร์" class="h-24 mb-2" />
-    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-red-800 text-center">มหาวิทยาลัยราชภัฏสุรินทร์</h1>
-    <p class="text-lg text-gray-700">ระบบเช็คกิจกรรมระดับคณะวิทยาศาสตร์และเทคโนโลยี ปีการศึกษา 2568</p>
+  <header class="w-full flex flex-col items-center py-4 bg-white bg-opacity-90 shadow-sm sticky top-0 z-10">
+    <div class="flex items-center justify-center mb-2">
+      <img src="https://sv1.img.in.th/7DBsh3.png" alt="โลโก้ มรภ.สุรินทร์" class="h-20 sm:h-24" />
+    </div>
+    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-red-800 text-center mobile-text-center">มหาวิทยาลัยราชภัฏสุรินทร์</h1>
+    <p class="text-sm sm:text-lg text-gray-700 mobile-text-center">ระบบเช็คกิจกรรมระดับคณะวิทยาศาสตร์และเทคโนโลยี ปีการศึกษา 2568</p>
   </header>
 
   <!-- เมนู -->
-  <nav class="w-full flex flex-col sm:flex-row flex-wrap sm:justify-end gap-2 sm:gap-3 px-4 py-3 bg-white bg-opacity-80 shadow">
+  <nav class="w-full flex flex-wrap justify-center sm:justify-end gap-2 px-4 py-3 bg-white bg-opacity-90 shadow-sm">
     <a href="https://www.facebook.com/share/1Aho2wi5TL/?mibextid=wwXIfr" target="_blank"
-        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-center">
-        ติดต่อ
+        class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-center btn-hover btn-active flex items-center">
+        <i class="fas fa-phone-alt mr-2"></i> ติดต่อ
     </a>
-    <button onclick="toggleAboutModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        เกี่ยวกับเว็บไซต์
+    <button onclick="toggleAboutModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 btn-hover btn-active flex items-center">
+        <i class="fas fa-info-circle mr-2"></i> เกี่ยวกับ
     </button>
-    <button onclick="toggleActivityMenu()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        รายการกิจกรรมที่ส่ง
+    <button onclick="toggleActivityMenu()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 btn-hover btn-active flex items-center">
+        <i class="fas fa-list-check mr-2"></i> รายการกิจกรรม
     </button>
   </nav>
 
   <!-- เมนูรายการกิจกรรม -->
-  <div id="activityMenu" class="hidden px-6 py-4 bg-white bg-opacity-90 shadow-lg rounded-xl mx-6 mt-4">
-    <div class="flex justify-between items-center mb-2">
-      <h2 class="text-xl font-bold text-green-700">รายการกิจกรรมที่ส่ง</h2>
-      <button onclick="toggleActivityMenu()" class="text-red-500 text-sm hover:underline">ปิด</button>
+  <div id="activityMenu" class="hidden px-4 sm:px-6 py-4 bg-white bg-opacity-95 shadow-lg rounded-xl mx-2 sm:mx-6 mt-2 sm:mt-4">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-lg sm:text-xl font-bold text-purple-700 flex items-center">
+        <i class="fas fa-clipboard-list mr-2"></i> รายการกิจกรรมที่ส่ง
+      </h2>
+      <button onclick="toggleActivityMenu()" class="text-red-500 hover:text-red-700 text-sm font-medium flex items-center">
+        <i class="fas fa-times mr-1"></i> ปิด
+      </button>
     </div>
-    <div id="activityList" class="space-y-2 overflow-y-auto max-h-[60vh]"></div>
+    <div id="activityList" class="space-y-3 overflow-y-auto max-h-[60vh] custom-scrollbar"></div>
   </div>
 
   <!-- Main form -->
-  <main class="flex justify-center px-2 sm:px-4 md:px-6 py-6">
-    <div class="overlay w-full max-w-2xl rounded-xl bg-white-100 shadow-2xl p-4 sm:p-6 space-y-4">
-      <div class="flex justify-center mb-4">
-        <img src="https://sv1.img.in.th/7DBZUl.png" alt="โลโก้บนฟอร์ม" class="h-16" />
+  <main class="flex justify-center px-2 sm:px-4 md:px-6 py-4 sm:py-6">
+    <div class="overlay w-full max-w-2xl p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div class="flex justify-center mb-3 sm:mb-4">
+        <img src="https://sv1.img.in.th/7DBZUl.png" alt="โลโก้บนฟอร์ม" class="h-14 sm:h-16" />
       </div>
-      <div class="grid grid-cols-1 gap-4">
-        <input type="text" id="studentId" placeholder="รหัสนักศึกษา" class="w-full p-2 border rounded shadow" />
-        <input type="text" id="studentName" placeholder="ชื่อนักศึกษา" class="w-full p-2 border rounded shadow" />
-
-        <select id="chanPee" class="w-full p-2 border rounded shadow" onchange="toggleCustomActivityInput()">
+      
+      <div class="grid grid-cols-1 gap-3 sm:gap-4">
+        <!-- รหัสนักศึกษา -->
+        <div>
+          <label for="studentId" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+            <i class="fas fa-id-card mr-2 text-blue-600"></i> รหัสนักศึกษา
+          </label>
+          <input type="text" id="studentId" placeholder="ระบุรหัสนักศึกษา" 
+                 class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        </div>
+        
+        <!-- ชื่อนักศึกษา -->
+        <div>
+          <label for="studentName" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+            <i class="fas fa-user-graduate mr-2 text-blue-600"></i> ชื่อนักศึกษา
+          </label>
+          <input type="text" id="studentName" placeholder="ระบุชื่อ-สกุล" 
+                 class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        </div>
+        
+        <!-- ชั้นปี -->
+        <div>
+          <label for="chanPee" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+            <i class="fas fa-layer-group mr-2 text-blue-600"></i> ชั้นปี
+          </label>
+          <select id="chanPee" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onchange="toggleCustomActivityInput()">
             <option value="">-- เลือกชั้นปี --</option>
             <option value="ชั้นปีที่ 1">ชั้นปีที่ 1</option>    
             <option value="ชั้นปีที่ 2">ชั้นปีที่ 2</option>
             <option value="ชั้นปีที่ 3">ชั้นปีที่ 3</option>
             <option value="ชั้นปีที่ 4">ชั้นปีที่ 4</option>
-        </select>
+          </select>
+        </div>
         
-        <select id="studentMajor" class="w-full p-2 border rounded shadow">
-          <option value="">-- เลือกสาขา --</option>
-          <option value="ค.บ.วิทยาศาสตร์ทั่วไป">ค.บ.วิทยาศาสตร์ทั่วไป</option>
-          <option value="ค.บ.ชีววิทยา">ค.บ.ชีววิทยา</option>
-          <option value="ค.บ.เคมี">ค.บ.เคมี</option>
-          <option value="ค.บ.ฟิสิกส์">ค.บ.ฟิสิกส์</option>
-          <option value="ค.บ.คณิตศาสตร์">ค.บ.คณิตศาสตร์</option>
-          <option value="ค.บ.คอมพิวเตอร์">ค.บ.คอมพิวเตอร์</option>
-          <option value="ค.บ.คหกรรมศาสตร์">ค.บ.คหกรรมศาสตร์</option>
-          <option value="วท.บ.วิทยาการคอมพิวเตอร์">วท.บ.วิทยาการคอมพิวเตอร์</option>
-          <option value="วท.บ.วิทยาศาสตร์สิ่งแวดล้อม">วท.บ.วิทยาศาสตร์สิ่งแวดล้อม</option>
-          <option value="วท.บ.เคมีประยุกต์">วท.บ.เคมีประยุกต์</option>
-          <option value="วท.บ.ชีววิทยาเชิงสร้างสรรค์">วท.บ.ชีววิทยาเชิงสร้างสรรค์</option>
-          <option value="วท.บ.สาธารณสุขศาสตร์">วท.บ.สาธารณสุขศาสตร์</option>
-          <option value="วท.บ.คณิตศาสตร์">วท.บ.คณิตศาสตร์</option>
-          <option value="วท.บ.ธุรกิจการแปรรูปอาหาร">วท.บ.ธุรกิจการแปรรูปอาหาร</option>
-          <option value="พท.บ.การแพทย์แผนไทย">พท.บ.การแพทย์แผนไทย</option>
-          <option value="ส.บ. การส่งเสริมสุขภาพเด็กและผู้สูงอายุ">ส.บ. การส่งเสริมสุขภาพเด็กและผู้สูงอายุ</option>
-        </select>
-
-        <select id="activity" class="w-full p-2 border rounded shadow" onchange="toggleCustomActivityInput()">
-          <option value="">-- เลือกกิจกรรม --</option>
-          <option value="ปฐมนิเทศนักศึกษาใหม่ระดับคณะ">ปฐมนิเทศนักศึกษาใหม่ระดับคณะ</option>
-          <option value="เตรียมความพร้อมระดับคณะ">เตรียมความพร้อมนักศึกษาใหม่ระดับคณะ</option>
-          <option value="พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ">พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ</option>
-          <option value="กีฬาสีภายในคณะ">กีฬาสีภายในคณะ</option>
-          <option value="สัปดาห์วันวิทยาศาสตร์">สัปดาห์วันวิทยาศาสตร์</option>
-          <option value="other">กิจกรรมอื่นๆ</option>
-        </select>
-        
-        <input type="text" id="customActivity" placeholder="กรุณาระบุชื่อกิจกรรม" class="w-full p-2 border rounded shadow mt-2 hidden" />
-        
+        <!-- สาขา -->
         <div>
-          <label class="block mb-1 text-gray-700">แนบรูปภาพกิจกรรม</label>
-          <input type="file" id="imageInput" accept="image/*" class="block w-full border rounded shadow" />
-          <img id="preview" class="mt-2 max-h-48 rounded shadow hidden w-full" />
+          <label for="studentMajor" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+            <i class="fas fa-graduation-cap mr-2 text-blue-600"></i> สาขา
+          </label>
+          <select id="studentMajor" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">-- เลือกสาขา --</option>
+            <option value="ค.บ.วิทยาศาสตร์ทั่วไป">ค.บ.วิทยาศาสตร์ทั่วไป</option>
+            <option value="ค.บ.ชีววิทยา">ค.บ.ชีววิทยา</option>
+            <option value="ค.บ.เคมี">ค.บ.เคมี</option>
+            <option value="ค.บ.ฟิสิกส์">ค.บ.ฟิสิกส์</option>
+            <option value="ค.บ.คณิตศาสตร์">ค.บ.คณิตศาสตร์</option>
+            <option value="ค.บ.คอมพิวเตอร์">ค.บ.คอมพิวเตอร์</option>
+            <option value="ค.บ.คหกรรมศาสตร์">ค.บ.คหกรรมศาสตร์</option>
+            <option value="วท.บ.วิทยาการคอมพิวเตอร์">วท.บ.วิทยาการคอมพิวเตอร์</option>
+            <option value="วท.บ.วิทยาศาสตร์สิ่งแวดล้อม">วท.บ.วิทยาศาสตร์สิ่งแวดล้อม</option>
+            <option value="วท.บ.เคมีประยุกต์">วท.บ.เคมีประยุกต์</option>
+            <option value="วท.บ.ชีววิทยาเชิงสร้างสรรค์">วท.บ.ชีววิทยาเชิงสร้างสรรค์</option>
+            <option value="วท.บ.สาธารณสุขศาสตร์">วท.บ.สาธารณสุขศาสตร์</option>
+            <option value="วท.บ.คณิตศาสตร์">วท.บ.คณิตศาสตร์</option>
+            <option value="วท.บ.ธุรกิจการแปรรูปอาหาร">วท.บ.ธุรกิจการแปรรูปอาหาร</option>
+            <option value="พท.บ.การแพทย์แผนไทย">พท.บ.การแพทย์แผนไทย</option>
+            <option value="ส.บ. การส่งเสริมสุขภาพเด็กและผู้สูงอายุ">ส.บ. การส่งเสริมสุขภาพเด็กและผู้สูงอายุ</option>
+          </select>
         </div>
 
+        <!-- กิจกรรม -->
         <div>
-          <label class="block text-gray-700 mb-1">ตำแหน่งกิจกรรม</label>
-          <div id="map" style="height: 300px; width: 100%;"></div>
+          <label for="activity" class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+            <i class="fas fa-calendar-check mr-2 text-blue-600"></i> กิจกรรม
+          </label>
+          <select id="activity" class="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onchange="toggleCustomActivityInput()">
+            <option value="">-- เลือกกิจกรรม --</option>
+            <option value="ปฐมนิเทศนักศึกษาใหม่ระดับคณะ">ปฐมนิเทศนักศึกษาใหม่ระดับคณะ</option>
+            <option value="เตรียมความพร้อมระดับคณะ">เตรียมความพร้อมนักศึกษาใหม่ระดับคณะ</option>
+            <option value="พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ">พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ</option>
+            <option value="กีฬาสีภายในคณะ">กีฬาสีภายในคณะ</option>
+            <option value="สัปดาห์วันวิทยาศาสตร์">สัปดาห์วันวิทยาศาสตร์</option>
+            <option value="other">กิจกรรมอื่นๆ</option>
+          </select>
+          
+          <input type="text" id="customActivity" placeholder="กรุณาระบุชื่อกิจกรรม" 
+                 class="w-full p-3 mt-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hidden" />
+        </div>
+        
+        <!-- รูปภาพกิจกรรม -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+            <i class="fas fa-camera mr-2 text-blue-600"></i> แนบรูปภาพกิจกรรม
+          </label>
+          <div class="flex items-center justify-center w-full">
+            <label for="imageInput" class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition">
+              <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                <i class="fas fa-cloud-upload-alt text-2xl text-gray-500 mb-2"></i>
+                <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">คลิกเพื่ออัปโหลด</span></p>
+                <p class="text-xs text-gray-500">PNG, JPG (สูงสุด 5MB)</p>
+              </div>
+              <input id="imageInput" type="file" accept="image/*" class="hidden" />
+            </label>
+          </div>
+          <img id="preview" class="mt-3 rounded-lg shadow hidden w-full object-cover" style="max-height: 200px;" />
+        </div>
+
+        <!-- ตำแหน่งกิจกรรม -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1 flex items-center">
+            <i class="fas fa-map-marker-alt mr-2 text-blue-600"></i> ตำแหน่งกิจกรรม
+          </label>
+          <div id="map" style="height: 300px; width: 100%; border-radius: 0.5rem; overflow: hidden;"></div>
           <input type="hidden" id="lat" name="lat">
           <input type="hidden" id="lng" name="lng">
-          <p class="text-sm mt-1 text-gray-600">พิกัดจะไม่สามารถเลือกด้วยตัวเองได้ <span id="latlng">(อย่าลืมเปิดตำแหน่งเพื่อปักหมุดสถานที่กิจกรรม)</span></p>
+          <p class="text-xs mt-1 text-gray-500 flex items-center">
+            <i class="fas fa-info-circle mr-1"></i> ระบบจะบันทึกตำแหน่งปัจจุบันอัตโนมัติ (กรุณาเปิดการแชร์ตำแหน่ง)
+          </p>
         </div>
       </div>
 
-      <div class="text-center pt-4">
-        <button onclick="submitForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow-lg w-full sm:w-auto">
-          ส่งข้อมูลกิจกรรม
+      <!-- ปุ่มส่งข้อมูล -->
+      <div class="text-center pt-2 sm:pt-4">
+        <button onclick="submitForm()" 
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg shadow-lg w-full sm:w-auto btn-hover btn-active flex items-center justify-center">
+          <i class="fas fa-paper-plane mr-2"></i> ส่งข้อมูลกิจกรรม
         </button>
       </div>
     </div>
@@ -172,48 +335,117 @@
   <!-- Modal -->
   <div id="modal" class="modal hidden">
     <div class="modal-content">
-      <button onclick="closeModal()" class="text-red-600 font-bold float-right">×</button>
-      <div id="modalContent" class="mt-4"></div>
+      <button onclick="closeModal()" class="text-red-600 font-bold float-right text-2xl hover:text-red-800">&times;</button>
+      <div id="modalContent" class="mt-4 space-y-3"></div>
     </div>
   </div>
   
+  <!-- About Modal -->
   <div id="aboutModal" class="modal hidden">
     <div class="modal-content">
-      <button onclick="closeAboutModal()" class="text-red-600 font-bold float-right">×</button>
-      <div class="mt-4 text-gray-800 space-y-2">
-        <h2 class="text-xl font-bold text-green-700">เกี่ยวกับเว็บไซต์</h2>
-        <p>
+      <button onclick="closeAboutModal()" class="text-red-600 font-bold float-right text-2xl hover:text-red-800">&times;</button>
+      <div class="mt-4 text-gray-800 space-y-4">
+        <h2 class="text-xl font-bold text-blue-700 flex items-center">
+          <i class="fas fa-info-circle mr-2"></i> เกี่ยวกับเว็บไซต์
+        </h2>
+        <p class="text-sm sm:text-base">
           เว็บไซต์นี้พัฒนาขึ้นเพื่อใช้ในการเช็คกิจกรรมของนักศึกษาคณะวิทยาศาสตร์และเทคโนโลยี
           มหาวิทยาลัยราชภัฏสุรินทร์ ปีการศึกษา 2568 เท่านั้น ไม่มีเจตนาในการหลอกลวงผู้ใด
         </p>
-        <h2 class="text-xl font-bold text-red-600">ปฐมนิเทศนักศึกษาใหม่ระดับคณะ</h2>
-        <p>
-            กิจกรรมปฐมนิเทศนักศึกษาใหม่ระดับคณะ จัดขึ้นเพื่อเตรียมความพร้อมให้นักศึกษาใหม่ของคณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏสุรินทร์ โดยมีเป้าหมายเพื่อแนะนำข้อมูลสำคัญเกี่ยวกับคณะ หลักสูตร บุคลากร ระบบการเรียนการสอน รวมถึงกฎระเบียบต่าง ๆ ที่เกี่ยวข้อง
-
-            กิจกรรมนี้ช่วยให้นักศึกษาเข้าใจบทบาทหน้าที่ของตนเองในฐานะนักศึกษาระดับอุดมศึกษา และสามารถปรับตัวเข้าสู่ชีวิตมหาวิทยาลัยได้อย่างเหมาะสม
-        </p>
-        <h2 class="text-xl font-bold text-red-600">เตรียมความพร้อมนักศึกษาใหม่ระดับคณะ</h2>        
-        <p>
-            กิจกรรมเตรียมความพร้อมนักศึกษาใหม่ระดับคณะ จัดขึ้นเพื่อเสริมสร้างทักษะพื้นฐานและพัฒนาศักยภาพของนักศึกษาใหม่ให้พร้อมต่อการเรียนในระดับอุดมศึกษา โดยเน้นการสร้างความเข้าใจในระบบการเรียนรู้ การบริหารเวลา การทำงานเป็นทีม รวมถึงการส่งเสริมทัศนคติที่ดีต่อการเรียนในคณะวิทยาศาสตร์และเทคโนโลยี
-
-            กิจกรรมนี้เป็นส่วนหนึ่งของการวางรากฐานสำคัญที่จะช่วยให้นักศึกษาปรับตัวและเริ่มต้นชีวิตในรั้วมหาวิทยาลัยได้อย่างมั่นใจและมีประสิทธิภาพ
-        </p>
-        <h2 class="text-xl font-bold text-red-600">พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ</h2>        
-        <p>
-            พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ เป็นกิจกรรมที่จัดขึ้นเพื่อให้นักศึกษาใหม่ได้แสดงความเคารพและสำนึกในพระคุณของครูอาจารย์ ตลอดจนเพื่อเสริมสร้างขวัญและกำลังใจในการเริ่มต้นชีวิตการศึกษาในระดับมหาวิทยาลัย โดยมีการประกอบพิธีตามประเพณีไทยที่สืบสานกันมาอย่างยาวนาน เพื่อส่งเสริมความเป็นสิริมงคล ความผูกพัน และความภาคภูมิใจในความเป็นสมาชิกของคณะวิทยาศาสตร์และเทคโนโลยี
-        </p>
-        <h2 class="text-xl font-bold text-red-600">กีฬาสีภายในคณะ</h2>        
-        <p>
-            เป็นกิจกรรมที่ส่งเสริมความสามัคคี ความมีน้ำใจนักกีฬา และสร้างความสัมพันธ์อันดีระหว่างนักศึกษาภายในคณะ ผ่านการแข่งขันกีฬาและกิจกรรมนันทนาการหลากหลายประเภท โดยมีการแบ่งนักศึกษาออกเป็นสีต่าง ๆ เพื่อร่วมแข่งขันและเชียร์อย่างสร้างสรรค์
-        </p>
-        <h2 class="text-xl font-bold text-red-600">สัปดาห์วันวิทยาศาสตร์</h2>        
-        <p>
-            กิจกรรมที่จัดขึ้นเพื่อส่งเสริมความรู้และความเข้าใจด้านวิทยาศาสตร์ เทคโนโลยี และนวัตกรรม แก่นักศึกษาและเยาวชน พร้อมทั้งร่วมเทิดพระเกียรติพระบาทสมเด็จพระจอมเกล้าเจ้าอยู่หัว ในฐานะพระบิดาแห่งวิทยาศาสตร์ไทย ผ่านกิจกรรมที่หลากหลาย เช่น นิทรรศการ การสาธิต และการประกวดเชิงวิชาการ
-        </p>
-        <p class="text-center">------------------------------------------------------------------------</p>
-        <p class="text-right">นายภานุวัฒน์ แสนกล้า</p>
-        <p class="text-right">หัวหน้าฝ่ายโสตทัศนูปกรณ์และโซเชียล</p>
+        
+        <div class="space-y-4">
+          <div class="bg-blue-50 p-3 rounded-lg">
+            <h2 class="text-lg font-bold text-blue-700 flex items-center">
+              <i class="fas fa-calendar-day mr-2"></i> ปฐมนิเทศนักศึกษาใหม่ระดับคณะ
+            </h2>
+            <p class="text-sm sm:text-base mt-1">
+              กิจกรรมปฐมนิเทศนักศึกษาใหม่ระดับคณะ จัดขึ้นเพื่อเตรียมความพร้อมให้นักศึกษาใหม่ของคณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏสุรินทร์ โดยมีเป้าหมายเพื่อแนะนำข้อมูลสำคัญเกี่ยวกับคณะ หลักสูตร บุคลากร ระบบการเรียนการสอน รวมถึงกฎระเบียบต่าง ๆ ที่เกี่ยวข้อง
+            </p>
+          </div>
+          
+          <div class="bg-green-50 p-3 rounded-lg">
+            <h2 class="text-lg font-bold text-green-700 flex items-center">
+              <i class="fas fa-user-graduate mr-2"></i> เตรียมความพร้อมนักศึกษาใหม่ระดับคณะ
+            </h2>        
+            <p class="text-sm sm:text-base mt-1">
+              กิจกรรมเตรียมความพร้อมนักศึกษาใหม่ระดับคณะ จัดขึ้นเพื่อเสริมสร้างทักษะพื้นฐานและพัฒนาศักยภาพของนักศึกษาใหม่ให้พร้อมต่อการเรียนในระดับอุดมศึกษา โดยเน้นการสร้างความเข้าใจในระบบการเรียนรู้ การบริหารเวลา การทำงานเป็นทีม รวมถึงการส่งเสริมทัศนคติที่ดีต่อการเรียนในคณะวิทยาศาสตร์และเทคโนโลยี
+            </p>
+          </div>
+          
+          <div class="bg-purple-50 p-3 rounded-lg">
+            <h2 class="text-lg font-bold text-purple-700 flex items-center">
+              <i class="fas fa-hands-praying mr-2"></i> พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ
+            </h2>        
+            <p class="text-sm sm:text-base mt-1">
+              พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ เป็นกิจกรรมที่จัดขึ้นเพื่อให้นักศึกษาใหม่ได้แสดงความเคารพและสำนึกในพระคุณของครูอาจารย์ ตลอดจนเพื่อเสริมสร้างขวัญและกำลังใจในการเริ่มต้นชีวิตการศึกษาในระดับมหาวิทยาลัย โดยมีการประกอบพิธีตามประเพณีไทยที่สืบสานกันมาอย่างยาวนาน เพื่อส่งเสริมความเป็นสิริมงคล ความผูกพัน และความภาคภูมิใจในความเป็นสมาชิกของคณะวิทยาศาสตร์และเทคโนโลยี
+            </p>
+          </div>
+          
+          <div class="bg-yellow-50 p-3 rounded-lg">
+            <h2 class="text-lg font-bold text-yellow-700 flex items-center">
+              <i class="fas fa-running mr-2"></i> กีฬาสีภายในคณะ
+            </h2>        
+            <p class="text-sm sm:text-base mt-1">
+              เป็นกิจกรรมที่ส่งเสริมความสามัคคี ความมีน้ำใจนักกีฬา และสร้างความสัมพันธ์อันดีระหว่างนักศึกษาภายในคณะ ผ่านการแข่งขันกีฬาและกิจกรรมนันทนาการหลากหลายประเภท โดยมีการแบ่งนักศึกษาออกเป็นสีต่าง ๆ เพื่อร่วมแข่งขันและเชียร์อย่างสร้างสรรค์
+            </p>
+          </div>
+          
+          <div class="bg-red-50 p-3 rounded-lg">
+            <h2 class="text-lg font-bold text-red-700 flex items-center">
+              <i class="fas fa-flask mr-2"></i> สัปดาห์วันวิทยาศาสตร์
+            </h2>        
+            <p class="text-sm sm:text-base mt-1">
+              กิจกรรมที่จัดขึ้นเพื่อส่งเสริมความรู้และความเข้าใจด้านวิทยาศาสตร์ เทคโนโลยี และนวัตกรรม แก่นักศึกษาและเยาวชน พร้อมทั้งร่วมเทิดพระเกียรติพระบาทสมเด็จพระจอมเกล้าเจ้าอยู่หัว ในฐานะพระบิดาแห่งวิทยาศาสตร์ไทย ผ่านกิจกรรมที่หลากหลาย เช่น นิทรรศการ การสาธิต และการประกวดเชิงวิชาการ
+            </p>
+          </div>
+          
+          <div class="border-t pt-3 mt-3 text-center text-sm text-gray-500">
+            <p>------------------------------------------------------------------------</p>
+            <p class="font-medium mt-2">นายภานุวัฒน์ แสนกล้า</p>
+            <p>หัวหน้าฝ่ายโสตทัศนูปกรณ์และโซเชียล</p>
+            <p>สโมสรคณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏสุรินทร์</p>
+          </div>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="w-full mt-6 p-4 bg-white bg-opacity-90 flex flex-col items-center border-t">
+    <div class="max-w-md w-full">
+      <img src="https://sv1.img.in.th/7DBcGq.jpeg" alt="คณะวิทยาศาสตร์และเทคโนโลยี" class="w-full h-auto rounded-lg shadow" />
+    </div>
+    <p class="text-xs sm:text-sm text-gray-600 mt-3 text-center">
+      พัฒนาเว็บไซต์โดย หัวหน้าฝ่ายโสตทัศนูปกรณ์และโซเชียล<br />
+      สโมสรคณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏสุรินทร์
+    </p>
+    <div class="flex space-x-4 mt-3">
+      <a href="#" class="text-gray-500 hover:text-blue-600">
+        <i class="fab fa-facebook-f text-lg"></i>
+      </a>
+      <a href="#" class="text-gray-500 hover:text-blue-400">
+        <i class="fab fa-twitter text-lg"></i>
+      </a>
+      <a href="#" class="text-gray-500 hover:text-pink-600">
+        <i class="fab fa-instagram text-lg"></i>
+      </a>
+    </div>
+  </footer>
+  
+  <!-- Success Modal -->
+  <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-6 rounded-xl shadow-xl text-center mx-4 w-full max-w-sm transform transition-all duration-300 scale-95 animate-popup">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">ส่งข้อมูลสำเร็จ!</h3>
+      <p class="text-gray-600 mb-5">ระบบได้บันทึกข้อมูลกิจกรรมของคุณเรียบร้อยแล้ว</p>
+      <button onclick="closeSuccessModal()" 
+              class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-6 rounded-lg w-full transition btn-active">
+        ตกลง
+      </button>
     </div>
   </div>
 
@@ -223,7 +455,7 @@
       apiKey: "AIzaSyDLjVA5OpbaITRV2mdKxFxDewwNOUUArRI",
       authDomain: "sciencetechnologysrru.firebaseapp.com",
       projectId: "sciencetechnologysrru",
-      storageBucket: "sciencetechnologysrru.firebasestorage.app",
+      storageBucket: "sciencetechnologysrru.appspot.com",
       messagingSenderId: "420321260326",
       appId: "1:420321260326:web:8364415f9b441b111847e7",
       measurementId: "G-NP7ZHDF7TY"
@@ -233,7 +465,6 @@
     const app = firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
     const auth = firebase.auth();
-    const storage = firebase.storage();
     
     let map;
     let marker;
@@ -254,21 +485,36 @@
 
                 marker = L.marker([lat, lng], {
                     draggable: false,
+                    icon: L.icon({
+                        iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34]
+                    })
                 }).addTo(map).bindPopup("ตำแหน่งกิจกรรมของคุณ").openPopup();
 
                 document.getElementById('lat').value = lat;
                 document.getElementById('lng').value = lng;
                 selectedLatLng = { lat, lng };
 
+                // ปิดการโต้ตอบกับแผนที่บนมือถือ
                 map.dragging.disable();
                 map.touchZoom.disable();
                 map.doubleClickZoom.disable();
                 map.scrollWheelZoom.disable();
                 map.boxZoom.disable();
                 map.keyboard.disable();
-                map.tap?.disable();
+                if (map.tap) map.tap.disable();
+                
+                // แสดงพิกัดใน footer
+                document.getElementById('latlng').textContent = `พิกัด: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
             }, error => {
                 alert("ไม่สามารถเข้าถึงตำแหน่งของคุณได้ กรุณาเปิดการอนุญาต Location");
+                console.error("Geolocation error:", error);
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
             });
         } else {
             alert("เบราว์เซอร์ไม่รองรับการใช้ Location");
@@ -290,22 +536,37 @@
       
       // โหลดข้อมูลกิจกรรมเมื่อเปิดหน้าเว็บ
       loadActivities();
-    });
-
-    document.getElementById("imageInput").addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          document.getElementById("preview").src = reader.result;
-          document.getElementById("preview").classList.remove("hidden");
-        };
-        reader.readAsDataURL(file);
-      }
+      
+      // เพิ่มการจัดการการอัปโหลดรูปภาพ
+      document.getElementById("imageInput").addEventListener("change", function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          // ตรวจสอบขนาดไฟล์ (ไม่เกิน 5MB)
+          if (file.size > 5 * 1024 * 1024) {
+            alert("ไฟล์รูปภาพต้องมีขนาดไม่เกิน 5MB");
+            this.value = "";
+            return;
+          }
+          
+          const reader = new FileReader();
+          reader.onload = function() {
+            const preview = document.getElementById("preview");
+            preview.src = reader.result;
+            preview.classList.remove("hidden");
+          };
+          reader.readAsDataURL(file);
+        }
+      });
     });
 
     function toggleActivityMenu() {
-      document.getElementById("activityMenu").classList.toggle("hidden");
+      const menu = document.getElementById("activityMenu");
+      menu.classList.toggle("hidden");
+      
+      // โหลดข้อมูลกิจกรรมเมื่อเปิดเมนู
+      if (!menu.classList.contains("hidden")) {
+        loadActivities();
+      }
     }
 
     function toggleCustomActivityInput() {
@@ -321,30 +582,72 @@
       }
     }
 
-    async function submitForm() {
+    function submitForm() {
       const studentId = document.getElementById("studentId").value.trim();
       const studentName = document.getElementById("studentName").value.trim();
       const chanPee = document.getElementById("chanPee").value;
       const studentMajor = document.getElementById("studentMajor").value;
       let activity = document.getElementById("activity").value;
-      
       if (activity === "other") {
         activity = document.getElementById("customActivity").value.trim();
       }
-    
+
       const imageFile = document.getElementById("imageInput").files[0];
-    
+
       // ตรวจสอบข้อมูลที่จำเป็น
-      if (!studentId || !studentName || !chanPee || !studentMajor || !activity || !selectedLatLng || !imageFile) {
-        alert("กรุณากรอกข้อมูลให้ครบทุกช่องและเลือกกิจกรรม");
+      if (!studentId) {
+        showError("กรุณากรอกรหัสนักศึกษา");
+        document.getElementById("studentId").focus();
         return;
       }
-    
-      try {
-        // 1. อัปโหลดรูปภาพไปยัง Firebase Storage
-        const imageUrl = await uploadImage(imageFile);
+      
+      if (!studentName) {
+        showError("กรุณากรอกชื่อนักศึกษา");
+        document.getElementById("studentName").focus();
+        return;
+      }
+      
+      if (!chanPee) {
+        showError("กรุณาเลือกชั้นปี");
+        document.getElementById("chanPee").focus();
+        return;
+      }
+      
+      if (!studentMajor) {
+        showError("กรุณาเลือกสาขา");
+        document.getElementById("studentMajor").focus();
+        return;
+      }
+      
+      if (!activity) {
+        showError("กรุณาเลือกกิจกรรม");
+        document.getElementById("activity").focus();
+        return;
+      }
+      
+      if (!selectedLatLng) {
+        showError("กรุณาอนุญาตการเข้าถึงตำแหน่งที่ตั้ง");
+        return;
+      }
+      
+      if (!imageFile) {
+        showError("กรุณาแนบรูปภาพกิจกรรม");
+        document.getElementById("imageInput").focus();
+        return;
+      }
+
+      // แสดง loading
+      const submitBtn = document.querySelector('button[onclick="submitForm()"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> กำลังส่งข้อมูล...';
+      submitBtn.disabled = true;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const imageBase64 = reader.result;
+        const timestamp = new Date().getTime();
         
-        // 2. เตรียมข้อมูลกิจกรรม
+        // สร้างข้อมูลที่จะบันทึก
         const activityData = {
           studentId,
           studentName,
@@ -353,278 +656,46 @@
           activity,
           lat: selectedLatLng.lat.toFixed(5),
           lng: selectedLatLng.lng.toFixed(5),
-          imageUrl, // เก็บ URL ของรูปภาพแทน Base64
-          timestamp: new Date().toLocaleString(),
-          timestampValue: Date.now()
+          imageBase64,
+          timestamp: new Date().toLocaleString('th-TH'),
+          timestampValue: timestamp
         };
         
-        // 3. ตรวจสอบว่ามีกิจกรรมนี้อยู่แล้วหรือไม่
-        const snapshot = await database.ref('activities')
-          .orderByChild('studentId')
-          .equalTo(studentId)
-          .once('value');
-        
-        let alreadySubmitted = false;
-        snapshot.forEach(childSnapshot => {
-          const data = childSnapshot.val();
-          if (data.activity === activity) {
-            alreadySubmitted = true;
-          }
-        });
-        
-        if (alreadySubmitted) {
-          alert("คุณได้ส่งข้อมูลกิจกรรมนี้ไปแล้ว");
-          return;
-        }
-        
-        // 4. บันทึกข้อมูลใหม่
-        const newActivityRef = database.ref('activities').push();
-        await newActivityRef.set(activityData);
-        
-        // 5. เคลียร์ฟอร์ม
-        document.getElementById("studentId").value = "";
-        document.getElementById("studentName").value = "";
-        document.getElementById("chanPee").value = "";
-        document.getElementById("studentMajor").value = "";
-        document.getElementById("activity").value = "";
-        document.getElementById("customActivity").value = "";
-        document.getElementById("customActivity").classList.add("hidden");
-        document.getElementById("imageInput").value = "";
-        document.getElementById("preview").classList.add("hidden");
-        document.getElementById("preview").src = "";
-        const submitButton = document.querySelector('button[onclick="submitForm()"]');
-        const originalButtonText = submitButton.textContent;
-        submitButton.disabled = true;
-        submitButton.textContent = "กำลังอัปโหลด...";
-        
-        // 6. แสดงข้อความสำเร็จ
-        showSuccessModal();
-        
-        // 7. โหลดข้อมูลใหม่
-        loadActivities();
-        
-      } catch (error) {
-        console.error("Error:", error);
-        alert("เกิดข้อผิดพลาด: " + error.message);
-      }
-    }
-    
-    let currentLimit = 20; // จำนวนรายการที่โหลดแต่ละครั้ง
-    let lastKey = null; // คีย์ของรายการสุดท้ายที่โหลด
-
-    function loadActivities(limit = currentLimit, startAfter = null) {
-      let query = database.ref('activities')
-        .orderByChild('timestampValue')
-        .limitToLast(limit);
-    
-      if (startAfter) {
-        query = query.endBefore(startAfter);
-      }
-      
-      query.once('value').then(snapshot => {
-        const activities = {};
-        let count = 0;
-        
-        snapshot.forEach(childSnapshot => {
-          const data = childSnapshot.val();         
-          if (!activities[data.activity]) {
-            activities[data.activity] = [];
-          }
-          activities[data.activity].push(data);
-          
-          count++;
-          if (count === 1) {
-            lastKey = childSnapshot.key; // บันทึกคีย์ของรายการแรก (เนื่องจากเรียงจากใหม่ไปเก่า)
-          }
-        });
-        
-        renderActivityList(activities);
-        
-        if (count >= limit) {
-          addLoadMoreButton();
-        }
-      }).catch(error => {
-        console.error("Error loading activities:", error);
-      });
-    }
-    function uploadImage(file) {
-      return new Promise((resolve, reject) => {
-        // ตรวจสอบประเภทไฟล์
-        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        if (!validTypes.includes(file.type)) {
-          reject(new Error('ประเภทไฟล์ไม่รองรับ อนุญาตเฉพาะ JPEG, PNG, GIF'));
-          return;
-        }
-        
-        // ตรวจสอบขนาดไฟล์ (ไม่เกิน 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-          reject(new Error('ขนาดไฟล์ใหญ่เกินไป อนุญาตสูงสุด 2MB'));
-          return;
-        }
-        
-        // สร้างชื่อไฟล์ที่ไม่ซ้ำกัน
-        const fileName = `activity_${Date.now()}_${file.name}`;
-        const storageRef = firebase.storage().ref();
-        const fileRef = storageRef.child(`activity_images/${fileName}`);
-        
-        // เริ่มอัปโหลด
-        const uploadTask = fileRef.put(file);
-        
-        uploadTask.on('state_changed',
-          (snapshot) => {
-            // สามารถแสดง progress bar ได้ที่นี่
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log('Upload is ' + progress + '% done');
-          },
-          (error) => {
-            reject(new Error('เกิดข้อผิดพลาดในการอัปโหลด: ' + error.message));
-          },
-          () => {
-            // เมื่ออัปโหลดสำเร็จ
-            uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-              resolve(downloadURL);
+        // ตรวจสอบก่อนว่าไม่เคยส่งข้อมูลนี้มาก่อน
+        database.ref('activities').orderByChild('studentId').equalTo(studentId).once('value')
+          .then(snapshot => {
+            let alreadySubmitted = false;
+            snapshot.forEach(childSnapshot => {
+              const data = childSnapshot.val();
+              if (data.activity === activity) {
+                alreadySubmitted = true;
+              }
             });
-          }
-        );
-      });
-    }
-    function renderActivityList(activities) {
-      const listEl = document.getElementById("activityList");
-      
-      // ไม่ลบข้อมูลเดิมทั้งหมดเพื่อให้สามารถเพิ่มข้อมูลได้
-      if (currentLimit <= 20) {
-        listEl.innerHTML = "";
-      }
-    
-      for (const [activity, submissions] of Object.entries(activities)) {
-        const activitySection = document.createElement("div");
-    
-        const header = document.createElement("div");
-        header.className = "font-bold text-blue-700 cursor-pointer flex items-center";
-        header.innerHTML = `<span class="flex-1">${activity}</span><span class="text-sm text-gray-500">(${submissions.length} คน)</span>`;
-        header.onclick = () => {
-          const body = header.nextElementSibling;
-          body.classList.toggle("hidden");
-        };
-    
-        const body = document.createElement("div");
-        body.className = "ml-3 mt-2 space-y-2 hidden";
-    
-        const majorsMap = {};
-    
-        submissions.forEach((data) => {
-          if (!majorsMap[data.studentMajor]) {
-            majorsMap[data.studentMajor] = [];
-          }
-          majorsMap[data.studentMajor].push(data);
-        });
-    
-        for (const [major, students] of Object.entries(majorsMap)) {
-          const majorHeader = document.createElement("div");
-          majorHeader.className = "font-semibold text-green-600";
-          majorHeader.textContent = `• ${major}`;
-          body.appendChild(majorHeader);
-    
-          students.forEach((data) => {
-            const card = document.createElement("div");
-            card.className = "bg-white rounded shadow p-2 cursor-pointer hover:bg-gray-100 text-sm ml-4";
-            card.innerHTML = `
-              <p><strong>${data.studentName}</strong> (${data.studentId})</p>
-              <p class="text-xs text-gray-500">${data.timestamp}</p>
-            `;
-            card.onclick = () => {
-              document.getElementById("modalContent").innerHTML = `
-                <h3 class="text-lg font-bold mb-2">${data.activity}</h3>
-                <p><strong>ชื่อ:</strong> ${data.studentName}</p>
-                <p><strong>รหัส:</strong> ${data.studentId}</p>
-                <p><strong>ชั้นปี:</strong> ${data.chanPee}</p>
-                <p><strong>สาขา:</strong> ${data.studentMajor}</p>
-                <p><strong>เวลา:</strong> ${data.timestamp}</p>
-                <p><strong>พิกัด:</strong> ${data.lat}, ${data.lng}</p>
-                <img src="${data.imageUrl}" class="w-full max-w-full h-auto rounded mt-2" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Not+Found'" />
-              `;
-              document.getElementById("modal").classList.remove("hidden");
-            };
-            body.appendChild(card);
-          });
-        }
-    
-        activitySection.appendChild(header);
-        activitySection.appendChild(body);
-        listEl.appendChild(activitySection);
-      }
-    }
-    function addLoadMoreButton() {
-  // ลบปุ่มเดิมถ้ามี
-      const oldButton = document.getElementById('loadMoreButton');
-      if (oldButton) oldButton.remove();
-      
-      const btn = document.createElement('button');
-      btn.id = 'loadMoreButton';
-      btn.textContent = 'โหลดเพิ่มเติม';
-      btn.className = 'bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mt-4 mx-auto block';
-      btn.onclick = () => {
-        btn.disabled = true;
-        btn.textContent = 'กำลังโหลด...';
-        currentLimit += 20;
-        loadActivities(currentLimit, lastKey);
-      };
-      
-      document.getElementById('activityList').appendChild(btn);
-    }
-
-    function closeModal() {
-      document.getElementById("modal").classList.add("hidden");
-    }
-    
-    function toggleAboutModal() {
-      document.getElementById("aboutModal").classList.remove("hidden");
-    }
-    
-    function closeAboutModal() {
-      document.getElementById("aboutModal").classList.add("hidden");
-    }
-    
-// แทนที่ showSuccessModal() ด้วย
-    function showSuccessModal() {
-      const successModal = document.getElementById("successModal");
-      successModal.classList.remove("hidden");
-      
-      // ปิดอัตโนมัติหลังจาก 3 วินาที
-      setTimeout(() => {
-        successModal.classList.add("hidden");
-      }, 3000);
-    }
-    
-    function closeSuccessModal() {
-      document.getElementById("successModal").classList.add("hidden");
-    }
-    
-    finally {
-      submitButton.disabled = false;
-      submitButton.textContent = originalButtonText;
-    }
-  </script>
-
-  <!-- Footer -->
-  <footer class="w-full mt-8 p-4 bg-white bg-opacity-80 flex flex-col items-center">
-    <img src="https://sv1.img.in.th/7DBcGq.jpeg" alt="7DBcGq.jpeg" border="0" />
-    <p class="text-sm text-gray-600 mt-2 text-center">
-      พัฒนาเว็บไซต์โดย หัวหน้าฝ่ายโสตทัศนูปกรณ์และโซเชียล สโมสรคณะวิทยาศาสตร์และเทคโนโลยี SRRU
-    </p>
-  </footer>
-  
-  <!-- Success Modal -->
-  <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-6 rounded shadow text-center mx-4 w-full max-w-sm">
-      <svg class="mx-auto h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-      </svg>
-      <p class="text-green-700 text-lg font-semibold mb-4 mt-2">ส่งข้อมูลสำเร็จแล้ว!</p>
-      <button onclick="closeSuccessModal()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 w-full">
-        ตกลง
-      </button>
-    </div>
-  </div>
-</body>
-</html>
+            
+            if (alreadySubmitted) {
+              submitBtn.innerHTML = originalText;
+              submitBtn.disabled = false;
+              showError("คุณได้ส่งข้อมูลกิจกรรมนี้ไปแล้ว");
+              return;
+            }
+            
+            // บันทึกข้อมูลใหม่
+            const newActivityRef = database.ref('activities').push();
+            newActivityRef.set(activityData)
+              .then(() => {
+                // เคลียร์ฟอร์ม
+                document.getElementById("studentId").value = "";
+                document.getElementById("studentName").value = "";
+                document.getElementById("chanPee").value = "";
+                document.getElementById("studentMajor").value = "";
+                document.getElementById("activity").value = "";
+                document.getElementById("customActivity").value = "";
+                document.getElementById("customActivity").classList.add("hidden");
+                document.getElementById("imageInput").value = "";
+                document.getElementById("preview").classList.add("hidden");
+                document.getElementById("preview").src = "";
+                
+                // แสดงข้อความสำเร็จ
+                showSuccessModal();
+                
+               
