@@ -533,30 +533,172 @@
       });
       
       // โหลดข้อมูลกิจกรรมเมื่อเปิดหน้าเว็บ
-      loadActivities();
+                      // โหลดกิจกรรมใหม่
+                loadActivities();
+                
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+              })
+              .catch(error => {
+                console.error("Error saving activity:", error);
+                showError("เกิดข้อผิดพลาดในการบันทึกข้อมูล: " + error.message);
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+              });
+          });
+      };
+      reader.readAsDataURL(imageFile);
+    }
+
+    function loadActivities() {
+      const activityList = document.getElementById("activityList");
+      activityList.innerHTML = '<div class="flex justify-center py-4"><i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i></div>';
       
-      // เพิ่มการจัดการการอัปโหลดรูปภาพ
-      document.getElementById("imageInput").addEventListener("change", function(e) {
-        const file = e.target.files[0];
-        if (file) {
-          // ตรวจสอบขนาดไฟล์ (ไม่เกิน 5MB)
-          if (file.size > 5 * 1024 * 1024) {
-            alert("ไฟล์รูปภาพต้องมีขนาดไม่เกิน 5MB");
-            this.value = "";
+      database.ref('activities').orderByChild('timestampValue').once('value')
+        .then(snapshot => {
+          if (!snapshot.exists()) {
+            activityList.innerHTML = '<p class="text-gray-500 text-center py-4">ยังไม่มีกิจกรรมที่ส่ง</p>';
             return;
           }
           
-          const reader = new FileReader();
-          reader.onload = function() {
-            const preview = document.getElementById("preview");
-            preview.src = reader.result;
-            preview.classList.remove("hidden");
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    });
+          activityList.innerHTML = '';
+          const activities = [];
+          
+          snapshot.forEach(childSnapshot => {
+            activities.push(childSnapshot.val());
+          });
+          
+          // เรียงลำดับจากใหม่ไปเก่า
+          activities.reverse();
+          
+          activities.forEach(activity => {
+            const activityCard = document.createElement('div');
+            activityCard.className = 'activity-card bg-white p-3 rounded-lg border border-gray-200 shadow-sm';
+            
+            activityCard.innerHTML = `
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <h3 class="font-bold text-blue-700">${activity.activity}</h3>
+                  <p class="text-sm text-gray-600">${activity.studentName} (${activity.studentId})</p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    <i class="fas fa-calendar-day mr-1"></i> ${activity.timestamp}
+                  </p>
+                </div>
+                <button onclick="showActivityDetail('${activity.studentId}', '${activity.activity}')" 
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            `;
+            
+            activityList.appendChild(activityCard);
+          });
+        })
+        .catch(error => {
+          console.error("Error loading activities:", error);
+          activityList.innerHTML = '<p class="text-red-500 text-center py-4">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+        });
+    }
 
+    function showActivityDetail(studentId, activityName) {
+      const modal = document.getElementById("modal");
+      const modalContent = document.getElementById("modalContent");
+      
+      modalContent.innerHTML = '<div class="flex justify-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i></div>';
+      modal.classList.remove("hidden");
+      
+      database.ref('activities').orderByChild('studentId').equalTo(studentId).once('value')
+        .then(snapshot => {
+          let foundActivity = null;
+          
+          snapshot.forEach(childSnapshot => {
+            const activity = childSnapshot.val();
+            if (activity.activity === activityName) {
+              foundActivity = activity;
+            }
+          });
+          
+          if (!foundActivity) {
+            modalContent.innerHTML = '<p class="text-red-500 text-center py-4">ไม่พบข้อมูลกิจกรรม</p>';
+            return;
+          }
+          
+          modalContent.innerHTML = `
+            <div class="space-y-4">
+              <div class="text-center">
+                <h3 class="text-xl font-bold text-blue-700">${foundActivity.activity}</h3>
+                <p class="text-sm text-gray-600">${foundActivity.studentName}</p>
+                <p class="text-xs text-gray-500">${foundActivity.studentId} | ${foundActivity.chanPee} | ${foundActivity.studentMajor}</p>
+              </div>
+              
+              <div class="bg-gray-100 p-3 rounded-lg">
+                <img src="${foundActivity.imageBase64}" alt="รูปภาพกิจกรรม" class="rounded-lg w-full h-auto max-h-64 object-cover" />
+              </div>
+              
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <div class="bg-blue-50 p-2 rounded-lg">
+                  <p class="font-medium text-blue-700">วันที่ส่ง</p>
+                  <p>${foundActivity.timestamp}</p>
+                </div>
+                <div class="bg-green-50 p-2 rounded-lg">
+                  <p class="font-medium text-green-700">ตำแหน่ง</p>
+                  <p>${foundActivity.lat}, ${foundActivity.lng}</p>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .catch(error => {
+          console.error("Error loading activity detail:", error);
+          modalContent.innerHTML = '<p class="text-red-500 text-center py-4">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+        });
+    }
+
+    function showError(message) {
+      const modal = document.getElementById("modal");
+      const modalContent = document.getElementById("modalContent");
+      
+      modalContent.innerHTML = `
+        <div class="text-center">
+          <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-exclamation-triangle text-2xl text-red-600"></i>
+          </div>
+          <h3 class="text-lg font-bold text-gray-800 mb-2">เกิดข้อผิดพลาด</h3>
+          <p class="text-gray-600 mb-4">${message}</p>
+          <button onclick="closeModal()" 
+                  class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-lg w-full transition btn-active">
+            ตกลง
+          </button>
+        </div>
+      `;
+      
+      modal.classList.remove("hidden");
+    }
+
+    function showSuccessModal() {
+      const successModal = document.getElementById("successModal");
+      successModal.classList.remove("hidden");
+    }
+
+    function closeSuccessModal() {
+      const successModal = document.getElementById("successModal");
+      successModal.classList.add("hidden");
+    }
+
+    function closeModal() {
+      const modal = document.getElementById("modal");
+      modal.classList.add("hidden");
+    }
+
+    function toggleAboutModal() {
+      const aboutModal = document.getElementById("aboutModal");
+      aboutModal.classList.toggle("hidden");
+    }
+
+    function closeAboutModal() {
+      const aboutModal = document.getElementById("aboutModal");
+      aboutModal.classList.add("hidden");
+    }
     function toggleActivityMenu() {
       const menu = document.getElementById("activityMenu");
       menu.classList.toggle("hidden");
