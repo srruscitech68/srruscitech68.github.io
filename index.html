@@ -1,537 +1,1229 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>ระบบเช็คกิจกรรมคณะวิทยาศาสตร์และเทคโนโลยี</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
-  
-  <!-- เพิ่ม Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-  
-  <style>
-    body {
-      background-image: url('https://sv1.img.in.th/7DB9EN.jpeg');
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .overlay {
-      background-color: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(5px);
-    }
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-    }
-    .modal-content {
-      background-color: white;
-      padding: 1.5rem;
-      border-radius: 0.5rem;
-      max-width: 95%;
-      max-height: 90%;
-      overflow-y: auto;
-      width: 95%;
-      margin: 0 auto;
-    }
-    button, a[role="button"] {
-      min-height: 48px;
-      padding: 12px 16px;
-    }
-    input, select {
-      padding: 12px;
-      min-height: 48px;
-    }
-    .modal-content img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solo Leveling Profile | Phanuwat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Kanit:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #e63946;
+            --secondary: #f1faee;
+            --accent: #a8dadc;
+            --dark: #1d3557;
+            --darker: #0a1128;
+            --glow: 0 0 10px var(--primary), 0 0 20px rgba(230, 57, 70, 0.5);
+            --text: #f1faee;
+            --text-dark: #1d3557;
+            --hp-color: #ff3333;
+            --mp-color: #3399ff;
+            --exp-color: #ffcc00;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: var(--darker);
+            color: var(--text);
+            background-image: url('https://wallpapers.com/images/hd/solo-leveling-jin-woo-and-beru-6ezfy53zn1tuya1b.jpg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Overlay Effect */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(13, 17, 40, 0.9);
+            z-index: -1;
+        }
+
+        /* Scanline Effect */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Main Container */
+        .sl-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        /* Header */
+        .sl-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .sl-title {
+            font-family: 'Black Ops One', cursive;
+            font-size: 4rem;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+            margin-bottom: 1rem;
+            letter-spacing: 5px;
+            position: relative;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+
+        .sl-title::before, .sl-title::after {
+            content: "✧";
+            position: absolute;
+            color: var(--accent);
+            font-size: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .sl-title::before {
+            left: -50px;
+        }
+
+        .sl-title::after {
+            right: -50px;
+        }
+
+        .sl-subtitle {
+            font-size: 1.5rem;
+            color: var(--accent);
+            margin-bottom: 2rem;
+            text-shadow: 0 0 5px var(--accent);
+            letter-spacing: 2px;
+        }
+
+        /* Character Card */
+        .character-card {
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 3rem;
+            border: 4px solid var(--primary);
+            box-shadow: var(--glow);
+            background-color: rgba(0, 0, 0, 0.7);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+            clip-path: polygon(
+                0% 15%, 15% 15%, 15% 0%, 85% 0%, 
+                85% 15%, 100% 15%, 100% 85%, 
+                85% 85%, 85% 100%, 15% 100%, 
+                15% 85%, 0% 85%
+            );
+        }
+
+        .character-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--primary);
+        }
+
+        .character-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: sepia(50%) hue-rotate(-10deg);
+            transition: all 0.5s ease;
+        }
+
+        .character-card:hover .character-img {
+            filter: sepia(0%) hue-rotate(0deg);
+        }
+
+        .character-level {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Black Ops One', cursive;
+            font-size: 1.8rem;
+            box-shadow: 0 0 15px var(--primary);
+            border: 3px solid var(--accent);
+            z-index: 2;
+        }
+
+        .character-level::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed var(--accent);
+            border-radius: 50%;
+            animation: spin 10s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Navigation */
+        .sl-navigation {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 3rem;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .sl-navigation::before {
+            content: "";
+            position: absolute;
+            bottom: -15px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--primary), transparent);
+        }
+
+        .sl-nav-item {
+            background: linear-gradient(to bottom, #1d3557, #0a1128);
+            border: 2px solid var(--primary);
+            padding: 1rem 2.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Black Ops One', cursive;
+            color: var(--text);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            clip-path: polygon(
+                0% 20%, 20% 0%, 80% 0%, 100% 20%, 
+                100% 80%, 80% 100%, 20% 100%, 0% 80%
+            );
+        }
+
+        .sl-nav-item::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(230, 57, 70, 0.4),
+                transparent
+            );
+            transition: all 0.5s ease;
+        }
+
+        .sl-nav-item:hover::before {
+            left: 100%;
+        }
+
+        .sl-nav-item:hover {
+            background: linear-gradient(to bottom, var(--primary), #900);
+            color: var(--accent);
+            text-shadow: 0 0 5px var(--accent);
+        }
+
+        .sl-nav-item.active {
+            background: linear-gradient(to bottom, var(--primary), #900);
+            color: var(--accent);
+            font-weight: bold;
+            box-shadow: var(--glow);
+            transform: translateY(-5px);
+        }
+
+        /* Status Bars */
+        .status-bars {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-bar {
+            position: relative;
+        }
+
+        .status-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-family: 'Black Ops One', cursive;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .status-name {
+            color: var(--accent);
+            text-shadow: 0 0 3px var(--accent);
+        }
+
+        .status-value {
+            color: var(--text);
+        }
+
+        .bar-container {
+            height: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bar-progress {
+            height: 100%;
+            border-radius: 10px;
+            position: relative;
+            transition: width 0.5s ease;
+        }
+
+        .hp-bar {
+            background: linear-gradient(to right, #ff0000, #ff6666);
+            width: 85%;
+        }
+
+        .mp-bar {
+            background: linear-gradient(to right, #0066ff, #66a3ff);
+            width: 65%;
+        }
+
+        .exp-bar {
+            background: linear-gradient(to right, #ffcc00, #ffeb99);
+            width: 45%;
+        }
+
+        .bar-progress::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.1),
+                rgba(255, 255, 255, 0.3),
+                rgba(255, 255, 255, 0.1)
+            );
+            animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .level-display {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .level-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #900);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Black Ops One', cursive;
+            font-size: 2rem;
+            color: var(--text);
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 15px var(--primary);
+            position: relative;
+        }
+
+        .level-circle::before {
+            content: "";
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed var(--accent);
+            border-radius: 50%;
+            animation: spin 10s linear infinite;
+        }
+
+        .level-text {
+            font-family: 'Black Ops One', cursive;
+            color: var(--accent);
+            text-shadow: 0 0 3px var(--accent);
+        }
+
+        .level-text span {
+            display: block;
+            font-size: 1.2rem;
+        }
+
+        .level-text .current-level {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        /* Content Sections */
+        .sl-content-section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+            background-color: rgba(10, 17, 40, 0.8);
+            border: 3px solid var(--primary);
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 0 30px rgba(230, 57, 70, 0.3);
+            position: relative;
+            clip-path: polygon(
+                0% 10%, 10% 0%, 90% 0%, 100% 10%, 
+                100% 90%, 90% 100%, 10% 100%, 0% 90%
+            );
+        }
+
+        .sl-content-section::before {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 1px solid var(--accent);
+            clip-path: polygon(
+                0% 10%, 10% 0%, 90% 0%, 100% 10%, 
+                100% 90%, 90% 100%, 10% 100%, 0% 90%
+            );
+            pointer-events: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sl-section-title {
+            font-family: 'Black Ops One', cursive;
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 2rem;
+            text-shadow: 0 0 5px var(--primary);
+            position: relative;
+            padding-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .sl-section-title::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 150px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), transparent);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-item {
+            background: rgba(29, 53, 87, 0.6);
+            border: 2px solid var(--primary);
+            padding: 1.8rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            clip-path: polygon(
+                0% 15%, 15% 0%, 85% 0%, 100% 15%, 
+                100% 85%, 85% 100%, 15% 100%, 0% 85%
+            );
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+        }
+
+        .stat-item::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .stat-title {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-shadow: 0 0 3px var(--accent);
+        }
+
+        .stat-title i {
+            color: var(--primary);
+            font-size: 1.3rem;
+        }
+
+        /* Skills Section */
+        .skills-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .skill-category {
+            background: rgba(29, 53, 87, 0.6);
+            border: 2px solid var(--accent);
+            padding: 1.8rem;
+            position: relative;
+            transition: all 0.3s ease;
+            clip-path: polygon(
+                0% 15%, 15% 0%, 85% 0%, 100% 15%, 
+                100% 85%, 85% 100%, 15% 100%, 0% 85%
+            );
+        }
+
+        .skill-category:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(168, 218, 220, 0.3);
+        }
+
+        .skill-category::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--accent);
+        }
+
+        .skill-category h3 {
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-shadow: 0 0 3px var(--accent);
+        }
+
+        .skill-category h3 i {
+            color: var(--primary);
+        }
+
+        .skill-item {
+            margin-bottom: 1.5rem;
+        }
+
+        .skill-name {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .skill-bar {
+            height: 8px;
+            background: #1d3557;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .skill-progress {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--accent));
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Dungeon (Interests) Section */
+        .dungeon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .dungeon-card {
+            background: rgba(29, 53, 87, 0.6);
+            border: 2px solid var(--primary);
+            padding: 1.8rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            clip-path: polygon(
+                0% 15%, 15% 0%, 85% 0%, 100% 15%, 
+                100% 85%, 85% 100%, 15% 100%, 0% 85%
+            );
+        }
+
+        .dungeon-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                135deg,
+                rgba(230, 57, 70, 0.1),
+                transparent
+            );
+            z-index: -1;
+        }
+
+        .dungeon-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(230, 57, 70, 0.3);
+        }
+
+        .dungeon-title {
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-shadow: 0 0 3px var(--accent);
+        }
+
+        .dungeon-title i {
+            color: var(--primary);
+        }
+
+        .dungeon-list {
+            list-style-type: none;
+        }
+
+        .dungeon-list li {
+            margin-bottom: 0.8rem;
+            position: relative;
+            padding-left: 1.8rem;
+            font-size: 0.95rem;
+        }
+
+        .dungeon-list li::before {
+            content: "✦";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+
+        /* Quest Section */
+        .quest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+        }
+
+        .quest-card {
+            background: rgba(29, 53, 87, 0.6);
+            border: 2px solid var(--accent);
+            padding: 1.8rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            clip-path: polygon(
+                0% 15%, 15% 0%, 85% 0%, 100% 15%, 
+                100% 85%, 85% 100%, 15% 100%, 0% 85%
+            );
+        }
+
+        .quest-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                135deg,
+                rgba(168, 218, 220, 0.1),
+                transparent
+            );
+            z-index: -1;
+        }
+
+        .quest-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(168, 218, 220, 0.3);
+        }
+
+        .quest-title {
+            color: var(--accent);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-shadow: 0 0 3px var(--accent);
+        }
+
+        .quest-title i {
+            color: var(--primary);
+        }
+
+        .quest-description {
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        /* System Messages */
+        .system-message {
+            background: rgba(10, 17, 40, 0.9);
+            border-left: 5px solid var(--primary);
+            padding: 1.2rem;
+            margin: 1.5rem 0;
+            position: relative;
+            font-style: italic;
+            clip-path: polygon(
+                0% 0%, 95% 0%, 100% 50%, 95% 100%, 0% 100%
+            );
+        }
+
+        .system-message::before {
+            content: "⚡";
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 1.8rem;
+            text-shadow: 0 0 5px var(--primary);
+        }
+
+        /* Footer */
+        .sl-footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            position: relative;
+        }
+
+        .sl-footer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--primary), transparent);
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .social-link {
+            color: var(--text);
+            font-size: 1.8rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .social-link::after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .social-link:hover {
+            color: var(--primary);
+            transform: translateY(-5px);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .social-link:hover::after {
+            width: 100%;
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            color: var(--accent);
+            text-shadow: 0 0 3px var(--accent);
+            letter-spacing: 1px;
+        }
+
+        /* Active Section */
+        .active-section {
+            display: block;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sl-title {
+                font-size: 2.5rem;
+                letter-spacing: 3px;
+            }
+            
+            .sl-title::before, .sl-title::after {
+                font-size: 1.5rem;
+            }
+            
+            .sl-title::before {
+                left: -30px;
+            }
+            
+            .sl-title::after {
+                right: -30px;
+            }
+            
+            .character-card {
+                width: 220px;
+                height: 220px;
+            }
+            
+            .sl-navigation {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+            
+            .sl-nav-item {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .sl-content-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
 </head>
-<body class="min-h-screen text-gray-900">
+<body>
+    <div class="sl-container">
+        <header class="sl-header">
+            <div class="character-card">
+                <div class="character-level">E</div>
+                <img src="https://scontent-bkk1-1.xx.fbcdn.net/v/t1.15752-9/502045531_1424033569047092_4255830071187546205_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=9f807c&_nc_ohc=ALRW25Qd2CYQ7kNvwETFtbU&_nc_oc=AdlMz6WFZE5XB3JyK8A-jwnTrB6TQNb35QNv7m-pfXeKF7w4RVmOHZQSiW2YXpZ8amg&_nc_zt=23&_nc_ht=scontent-bkk1-1.xx&oh=03_Q7cD2gHievdh2Ga3DtC1lfRN2jHBlke68Qyk-PV6TB85TpCfyA&oe=6878E7E6" alt="Player Character" class="character-img">
+            </div>
+            <h1 class="sl-title">Phanuwat</h1>
+            <p class="sl-subtitle">HUNTER RANK: E | CLASS: นักเขียนโค้ดผู้โดดเดี่ยว | GUILD: ComputerScience</p>
+        </header>
 
-  <!-- Header -->
-  <header class="w-full flex flex-col items-center py-4 bg-white bg-opacity-80 shadow-md">
-    <img src="https://sv1.img.in.th/7DBsh3.png" alt="โลโก้ มรภ.สุรินทร์" class="h-24 mb-2" />
-    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-red-800 text-center">มหาวิทยาลัยราชภัฏสุรินทร์</h1>
-    <p class="text-lg text-gray-700">ระบบเช็คกิจกรรมระดับคณะวิทยาศาสตร์และเทคโนโลยี ปีการศึกษา 2568</p>
-  </header>
+        <nav class="sl-navigation">
+            <div class="sl-nav-item active" onclick="showSlSection('stats')">STATUS</div>
+            <div class="sl-nav-item" onclick="showSlSection('skills')">SKILLS</div>
+            <div class="sl-nav-item" onclick="showSlSection('dungeon')">INTERESTS</div>
+            <div class="sl-nav-item" onclick="showSlSection('quest')">QUESTS</div>
+        </nav>
 
-  <!-- เมนู -->
-  <nav class="w-full flex flex-col sm:flex-row flex-wrap sm:justify-end gap-2 sm:gap-3 px-4 py-3 bg-white bg-opacity-80 shadow">
-    <a href="https://www.facebook.com/share/1Aho2wi5TL/?mibextid=wwXIfr" target="_blank"
-        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-center">
-        ติดต่อ
-    </a>
-    <button onclick="toggleAboutModal()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        เกี่ยวกับเว็บไซต์
-    </button>
-    <button onclick="toggleActivityMenu()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-        รายการกิจกรรมที่ส่ง
-    </button>
-  </nav>
+        <!-- Stats Section -->
+        <section id="stats" class="sl-content-section active-section">
+            <h2 class="sl-section-title">PLAYER STATUS</h2>
+            
+            <div class="system-message">
+                <p>"การตื่นขึ้นของผู้เล่นที่อ่อนแอที่สุดในโลกได้เริ่มต้นขึ้นแล้ว"</p>
+            </div>
 
-  <!-- เมนูรายการกิจกรรม -->
-  <div id="activityMenu" class="hidden px-6 py-4 bg-white bg-opacity-90 shadow-lg rounded-xl mx-6 mt-4">
-    <div class="flex justify-between items-center mb-2">
-      <h2 class="text-xl font-bold text-green-700">รายการกิจกรรมที่ส่ง</h2>
-      <button onclick="toggleActivityMenu()" class="text-red-500 text-sm hover:underline">ปิด</button>
+            <div class="level-display">
+                <div class="level-circle">E</div>
+                <div class="level-text">
+                    <span>HUNTER RANK</span>
+                    <span class="current-level">E-Rank</span>
+                    <span>Next Level: 45%</span>
+                </div>
+            </div>
+
+            <div class="status-bars">
+                <div class="status-bar">
+                    <div class="status-label">
+                        <span class="status-name"><i class="fas fa-heart"></i> HP</span>
+                        <span class="status-value">850/1000</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-progress hp-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="status-bar">
+                    <div class="status-label">
+                        <span class="status-name"><i class="fas fa-bolt"></i> MP</span>
+                        <span class="status-value">650/1000</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-progress mp-bar"></div>
+                    </div>
+                </div>
+                
+                <div class="status-bar">
+                    <div class="status-label">
+                        <span class="status-name"><i class="fas fa-star"></i> EXP</span>
+                        <span class="status-value">450/1000</span>
+                    </div>
+                    <div class="bar-container">
+                        <div class="bar-progress exp-bar"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3 class="stat-title"><i class="fas fa-id-card"></i> BASIC INFO</h3>
+                    <p><strong>ชื่อ:</strong> ภานุวัฒน์ แสนกล้า</p>
+                    <p><strong>อายุ:</strong> 20 ปี</p>
+                    <p><strong>ที่อยู่:</strong> สุรินทร์</p>
+                </div>
+                
+                <div class="stat-item">
+                    <h3 class="stat-title"><i class="fas fa-graduation-cap"></i> EDUCATION</h3>
+                    <p><strong>โรงเรียน:</strong> จอมพระประชาสรรค์</p>
+                    <p><strong>สาย:</strong> ศิลป์-ภาษาญี่ปุ่น</p>
+                    <p><strong>ปีการศึกษา:</strong> 2564 - 2566</p>
+                </div>
+                
+                <div class="stat-item">
+                    <h3 class="stat-title"><i class="fas fa-trophy"></i> ACHIEVEMENTS</h3>
+                    <ul class="dungeon-list">
+                        <li>รางวัลนักเรียนดีเด่น</li>
+                        <li>แข่งขันทักษะวิชาการระดับจังหวัด</li>
+                        <li>เกรดเฉลี่ย 3.00+ ทุกภาคเรียน</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="sl-content-section">
+            <h2 class="sl-section-title">SKILL INVENTORY</h2>
+            
+            <div class="system-message">
+                <p>"ทักษะทั้งหมดของคุณจะถูกบันทึกไว้ที่นี่"</p>
+            </div>
+            
+            <div class="skills-container">
+                <div class="skill-category">
+                    <h3><i class="fas fa-laptop-code"></i> TECHNICAL SKILLS</h3>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">
+                            <span>Python</span>
+                            <span>90%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 90%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">
+                            <span>Java</span>
+                            <span>50%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 50%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">
+                            <span>HTML/CSS</span>
+                            <span>50%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 50%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skill-category">
+                    <h3><i class="fas fa-language"></i> LANGUAGE SKILLS</h3>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">
+                            <span>ภาษาไทย</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">
+                            <span>ภาษาอังกฤษ</span>
+                            <span>80%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">
+                            <span>ภาษาญี่ปุ่น</span>
+                            <span>50%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 50%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="skill-category">
+                    <h3><i class="fas fa-gamepad"></i> HUNTER SKILLS</h3>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">
+                            <span>ความฉลาด</span>
+                            <span>70%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">
+                            <span>ความเร็ว</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="skill-item">
+                        <div class="skill-name">
+                            <span>ความกล้าหาญ</span>
+                            <span>75%</span>
+                        </div>
+                        <div class="skill-bar">
+                            <div class="skill-progress" style="width: 75%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dungeon (Interests) Section -->
+        <section id="dungeon" class="sl-content-section">
+            <h2 class="sl-section-title">DUNGEON OF INTERESTS</h2>
+            
+            <div class="system-message">
+                <p>"คุณได้เข้าสู่ดันเจี้ยนแห่งความสนใจส่วนตัว"</p>
+            </div>
+            
+            <div class="dungeon-grid">
+                <div class="dungeon-card">
+                    <h3 class="dungeon-title"><i class="fas fa-utensils"></i> FOOD PREFERENCES</h3>
+                    <ul class="dungeon-list">
+                        <li>ก๋วยเตี๋ยว - ไม่กินกับถั่วงอก</li>
+                        <li>สปาเกตตี้ - โดยเฉพาะสปาเกตตี้ผัดขี้เมาไก่</li>
+                        <li>กาแฟ - ดื่มทุกเช้า</li>
+                    </ul>
+                </div>
+                
+                <div class="dungeon-card">
+                    <h3 class="dungeon-title"><i class="fas fa-gamepad"></i> HOBBIES</h3>
+                    <ul class="dungeon-list">
+                        <li>เล่นเกม (Genshin Impact)</li>
+                        <li>วาดรูปดิจิทัล</li>
+                        <li>อ่านมังฮวา</li>
+                    </ul>
+                </div>
+                
+                <div class="dungeon-card">
+                    <h3 class="dungeon-title"><i class="fas fa-paw"></i> FAVORITE CREATURES</h3>
+                    <ul class="dungeon-list">
+                        <li>สุนัขพันธุ์ชิบะ</li>
+                        <li>แมวส้ม</li>
+                        <li>หมาจิ้งจอก</li>
+                    </ul>
+                </div>
+                
+                <div class="dungeon-card">
+                    <h3 class="dungeon-title"><i class="fas fa-music"></i> FAVORITE MUSIC</h3>
+                    <ul class="dungeon-list">
+                        <li>Wildflower - RM</li>
+                        <li>Sailor Song - เจนนิษฐ์</li>
+                        <li>Confident - Justin Bieber</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quest Section -->
+        <section id="quest" class="sl-content-section">
+            <h2 class="sl-section-title">CURRENT QUESTS</h2>
+            
+            <div class="system-message">
+                <p>"ภารกิจที่คุณกำลังดำเนินการอยู่"</p>
+            </div>
+            
+            <div class="quest-grid">
+                <div class="quest-card">
+                    <h3 class="quest-title"><i class="fas fa-book"></i> MAIN QUEST</h3>
+                    <p class="quest-description">เรียนให้จบการศึกษาในสาขาวิทยาการคอมพิวเตอร์</p>
+                    <div class="skill-name">
+                        <span>ความคืบหน้า</span>
+                        <span>30%</span>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: 30%"></div>
+                    </div>
+                </div>
+                
+                <div class="quest-card">
+                    <h3 class="quest-title"><i class="fas fa-star"></i> SIDE QUEST</h3>
+                    <p class="quest-description">เรียนให้ได้เกรดเฉลี่ย 5.00 ทุกภาคเรียน</p>
+                    <div class="skill-name">
+                        <span>ความคืบหน้า</span>
+                        <span>20%</span>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: 20%"></div>
+                    </div>
+                </div>
+                
+                <div class="quest-card">
+                    <h3 class="quest-title"><i class="fas fa-dumbbell"></i> DAILY QUEST</h3>
+                    <p class="quest-description">ออกกำลังกาย 3 ครั้งต่อสัปดาห์</p>
+                    <div class="skill-name">
+                        <span>ความคืบหน้า</span>
+                        <span>80%</span>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: 80%"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="sl-footer">
+            <div class="social-links">
+                <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+            </div>
+            <p class="footer-text">"Only I level up"</p>
+        </footer>
     </div>
-    <div id="activityList" class="space-y-2 overflow-y-auto max-h-[60vh]"></div>
-  </div>
 
-  <!-- Main form -->
-  <main class="flex justify-center px-2 sm:px-4 md:px-6 py-6">
-    <div class="overlay w-full max-w-2xl rounded-xl bg-white-100 shadow-2xl p-4 sm:p-6 space-y-4">
-      <div class="flex justify-center mb-4">
-        <img src="https://sv1.img.in.th/7DBZUl.png" alt="โลโก้บนฟอร์ม" class="h-16" />
-      </div>
-      <div class="grid grid-cols-1 gap-4">
-        <input type="text" id="studentId" placeholder="รหัสนักศึกษา" class="w-full p-2 border rounded shadow" />
-        <input type="text" id="studentName" placeholder="ชื่อนักศึกษา" class="w-full p-2 border rounded shadow" />
-
-        <select id="chanPee" class="w-full p-2 border rounded shadow" onchange="toggleCustomActivityInput()">
-            <option value="">-- เลือกชั้นปี --</option>
-            <option value="ชั้นปีที่ 1">ชั้นปีที่ 1</option>    
-            <option value="ชั้นปีที่ 2">ชั้นปีที่ 2</option>
-            <option value="ชั้นปีที่ 3">ชั้นปีที่ 3</option>
-            <option value="ชั้นปีที่ 4">ชั้นปีที่ 4</option>
-        </select>
-        
-        <select id="studentMajor" class="w-full p-2 border rounded shadow">
-          <option value="">-- เลือกสาขา --</option>
-          <option value="ค.บ.วิทยาศาสตร์ทั่วไป">ค.บ.วิทยาศาสตร์ทั่วไป</option>
-          <option value="ค.บ.ชีววิทยา">ค.บ.ชีววิทยา</option>
-          <option value="ค.บ.เคมี">ค.บ.เคมี</option>
-          <option value="ค.บ.ฟิสิกส์">ค.บ.ฟิสิกส์</option>
-          <option value="ค.บ.คณิตศาสตร์">ค.บ.คณิตศาสตร์</option>
-          <option value="ค.บ.คอมพิวเตอร์">ค.บ.คอมพิวเตอร์</option>
-          <option value="ค.บ.คหกรรมศาสตร์">ค.บ.คหกรรมศาสตร์</option>
-          <option value="วท.บ.วิทยาการคอมพิวเตอร์">วท.บ.วิทยาการคอมพิวเตอร์</option>
-          <option value="วท.บ.วิทยาศาสตร์สิ่งแวดล้อม">วท.บ.วิทยาศาสตร์สิ่งแวดล้อม</option>
-          <option value="วท.บ.เคมีประยุกต์">วท.บ.เคมีประยุกต์</option>
-          <option value="วท.บ.ชีววิทยาเชิงสร้างสรรค์">วท.บ.ชีววิทยาเชิงสร้างสรรค์</option>
-          <option value="วท.บ.สาธารณสุขศาสตร์">วท.บ.สาธารณสุขศาสตร์</option>
-          <option value="วท.บ.คณิตศาสตร์">วท.บ.คณิตศาสตร์</option>
-          <option value="วท.บ.ธุรกิจการแปรรูปอาหาร">วท.บ.ธุรกิจการแปรรูปอาหาร</option>
-          <option value="พท.บ.การแพทย์แผนไทย">พท.บ.การแพทย์แผนไทย</option>
-          <option value="ส.บ. การส่งเสริมสุขภาพเด็กและผู้สูงอายุ">ส.บ. การส่งเสริมสุขภาพเด็กและผู้สูงอายุ</option>
-        </select>
-
-        <select id="activity" class="w-full p-2 border rounded shadow" onchange="toggleCustomActivityInput()">
-          <option value="">-- เลือกกิจกรรม --</option>
-          <option value="ปฐมนิเทศนักศึกษาใหม่ระดับคณะ">ปฐมนิเทศนักศึกษาใหม่ระดับคณะ</option>
-          <option value="เตรียมความพร้อมระดับคณะ">เตรียมความพร้อมนักศึกษาใหม่ระดับคณะ</option>
-          <option value="พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ">พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ</option>
-          <option value="กีฬาสีภายในคณะ">กีฬาสีภายในคณะ</option>
-          <option value="สัปดาห์วันวิทยาศาสตร์">สัปดาห์วันวิทยาศาสตร์</option>
-          <option value="other">กิจกรรมอื่นๆ</option>
-        </select>
-        
-        <input type="text" id="customActivity" placeholder="กรุณาระบุชื่อกิจกรรม" class="w-full p-2 border rounded shadow mt-2 hidden" />
-        
-        <div>
-          <label class="block mb-1 text-gray-700">แนบรูปภาพกิจกรรม</label>
-          <input type="file" id="imageInput" accept="image/*" class="block w-full border rounded shadow" />
-          <img id="preview" class="mt-2 max-h-48 rounded shadow hidden w-full" />
-        </div>
-
-        <div>
-          <label class="block text-gray-700 mb-1">ตำแหน่งกิจกรรม</label>
-          <div id="map" style="height: 300px; width: 100%;"></div>
-          <input type="hidden" id="lat" name="lat">
-          <input type="hidden" id="lng" name="lng">
-          <p class="text-sm mt-1 text-gray-600">พิกัดจะไม่สามารถเลือกด้วยตัวเองได้ <span id="latlng">(อย่าลืมเปิดตำแหน่งเพื่อปักหมุดสถานที่กิจกรรม)</span></p>
-        </div>
-      </div>
-
-      <div class="text-center pt-4">
-        <button onclick="submitForm()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow-lg w-full sm:w-auto">
-          ส่งข้อมูลกิจกรรม
-        </button>
-      </div>
-    </div>
-  </main>
-
-  <!-- Modal -->
-  <div id="modal" class="modal hidden">
-    <div class="modal-content">
-      <button onclick="closeModal()" class="text-red-600 font-bold float-right">×</button>
-      <div id="modalContent" class="mt-4"></div>
-    </div>
-  </div>
-  
-  <div id="aboutModal" class="modal hidden">
-    <div class="modal-content">
-      <button onclick="closeAboutModal()" class="text-red-600 font-bold float-right">×</button>
-      <div class="mt-4 text-gray-800 space-y-2">
-        <h2 class="text-xl font-bold text-green-700">เกี่ยวกับเว็บไซต์</h2>
-        <p>
-          เว็บไซต์นี้พัฒนาขึ้นเพื่อใช้ในการเช็คกิจกรรมของนักศึกษาคณะวิทยาศาสตร์และเทคโนโลยี
-          มหาวิทยาลัยราชภัฏสุรินทร์ ปีการศึกษา 2568 เท่านั้น ไม่มีเจตนาในการหลอกลวงผู้ใด
-        </p>
-        <h2 class="text-xl font-bold text-red-600">ปฐมนิเทศนักศึกษาใหม่ระดับคณะ</h2>
-        <p>
-            กิจกรรมปฐมนิเทศนักศึกษาใหม่ระดับคณะ จัดขึ้นเพื่อเตรียมความพร้อมให้นักศึกษาใหม่ของคณะวิทยาศาสตร์และเทคโนโลยี มหาวิทยาลัยราชภัฏสุรินทร์ โดยมีเป้าหมายเพื่อแนะนำข้อมูลสำคัญเกี่ยวกับคณะ หลักสูตร บุคลากร ระบบการเรียนการสอน รวมถึงกฎระเบียบต่าง ๆ ที่เกี่ยวข้อง
-
-            กิจกรรมนี้ช่วยให้นักศึกษาเข้าใจบทบาทหน้าที่ของตนเองในฐานะนักศึกษาระดับอุดมศึกษา และสามารถปรับตัวเข้าสู่ชีวิตมหาวิทยาลัยได้อย่างเหมาะสม
-        </p>
-        <h2 class="text-xl font-bold text-red-600">เตรียมความพร้อมนักศึกษาใหม่ระดับคณะ</h2>        
-        <p>
-            กิจกรรมเตรียมความพร้อมนักศึกษาใหม่ระดับคณะ จัดขึ้นเพื่อเสริมสร้างทักษะพื้นฐานและพัฒนาศักยภาพของนักศึกษาใหม่ให้พร้อมต่อการเรียนในระดับอุดมศึกษา โดยเน้นการสร้างความเข้าใจในระบบการเรียนรู้ การบริหารเวลา การทำงานเป็นทีม รวมถึงการส่งเสริมทัศนคติที่ดีต่อการเรียนในคณะวิทยาศาสตร์และเทคโนโลยี
-
-            กิจกรรมนี้เป็นส่วนหนึ่งของการวางรากฐานสำคัญที่จะช่วยให้นักศึกษาปรับตัวและเริ่มต้นชีวิตในรั้วมหาวิทยาลัยได้อย่างมั่นใจและมีประสิทธิภาพ
-        </p>
-        <h2 class="text-xl font-bold text-red-600">พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ</h2>        
-        <p>
-            พิธีไหว้ครูและพิธีบายศรีสู่ขวัญน้องใหม่ระดับคณะ เป็นกิจกรรมที่จัดขึ้นเพื่อให้นักศึกษาใหม่ได้แสดงความเคารพและสำนึกในพระคุณของครูอาจารย์ ตลอดจนเพื่อเสริมสร้างขวัญและกำลังใจในการเริ่มต้นชีวิตการศึกษาในระดับมหาวิทยาลัย โดยมีการประกอบพิธีตามประเพณีไทยที่สืบสานกันมาอย่างยาวนาน เพื่อส่งเสริมความเป็นสิริมงคล ความผูกพัน และความภาคภูมิใจในความเป็นสมาชิกของคณะวิทยาศาสตร์และเทคโนโลยี
-        </p>
-        <h2 class="text-xl font-bold text-red-600">กีฬาสีภายในคณะ</h2>        
-        <p>
-            เป็นกิจกรรมที่ส่งเสริมความสามัคคี ความมีน้ำใจนักกีฬา และสร้างความสัมพันธ์อันดีระหว่างนักศึกษาภายในคณะ ผ่านการแข่งขันกีฬาและกิจกรรมนันทนาการหลากหลายประเภท โดยมีการแบ่งนักศึกษาออกเป็นสีต่าง ๆ เพื่อร่วมแข่งขันและเชียร์อย่างสร้างสรรค์
-        </p>
-        <h2 class="text-xl font-bold text-red-600">สัปดาห์วันวิทยาศาสตร์</h2>        
-        <p>
-            กิจกรรมที่จัดขึ้นเพื่อส่งเสริมความรู้และความเข้าใจด้านวิทยาศาสตร์ เทคโนโลยี และนวัตกรรม แก่นักศึกษาและเยาวชน พร้อมทั้งร่วมเทิดพระเกียรติพระบาทสมเด็จพระจอมเกล้าเจ้าอยู่หัว ในฐานะพระบิดาแห่งวิทยาศาสตร์ไทย ผ่านกิจกรรมที่หลากหลาย เช่น นิทรรศการ การสาธิต และการประกวดเชิงวิชาการ
-        </p>
-        <p class="text-center">------------------------------------------------------------------------</p>
-        <p class="text-right">นายภานุวัฒน์ แสนกล้า</p>
-        <p class="text-right">หัวหน้าฝ่ายโสตทัศนูปกรณ์และโซเชียล</p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    const firebaseConfig = {
-      apiKey: "AIzaSyDLjVA5OpbaITRV2mdKxFxDewwNOUUArRI",
-      authDomain: "sciencetechnologysrru.firebaseapp.com",
-      projectId: "sciencetechnologysrru",
-      storageBucket: "sciencetechnologysrru.firebasestorage.app",
-      messagingSenderId: "420321260326",
-      appId: "1:420321260326:web:8364415f9b441b111847e7",
-      measurementId: "G-NP7ZHDF7TY"
-    };
-
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const auth = firebase.auth();
-    
-    let map;
-    let marker;
-    let selectedLatLng = null;
-
-    function initMap() {
-        map = L.map('map').setView([13.7563, 100.5018], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(position => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-
-                map.setView([lat, lng], 16);
-
-                marker = L.marker([lat, lng], {
-                    draggable: false,
-                }).addTo(map).bindPopup("ตำแหน่งกิจกรรมของคุณ").openPopup();
-
-                document.getElementById('lat').value = lat;
-                document.getElementById('lng').value = lng;
-                selectedLatLng = { lat, lng };
-
-                map.dragging.disable();
-                map.touchZoom.disable();
-                map.doubleClickZoom.disable();
-                map.scrollWheelZoom.disable();
-                map.boxZoom.disable();
-                map.keyboard.disable();
-                map.tap?.disable();
-            }, error => {
-                alert("ไม่สามารถเข้าถึงตำแหน่งของคุณได้ กรุณาเปิดการอนุญาต Location");
-            });
-        } else {
-            alert("เบราว์เซอร์ไม่รองรับการใช้ Location");
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-      initMap();
-      
-      // ตรวจสอบการเข้าสู่ระบบเมื่อโหลดหน้า
-      auth.onAuthStateChanged(user => {
-        if (!user) {
-          // ถ้ายังไม่ได้ล็อกอิน ให้ล็อกอินแบบไม่ระบุตัวตน
-          auth.signInAnonymously().catch(error => {
-            console.error("Error signing in anonymously:", error);
-          });
-        }
-      });
-      
-      // โหลดข้อมูลกิจกรรมเมื่อเปิดหน้าเว็บ
-      loadActivities();
-    });
-
-    document.getElementById("imageInput").addEventListener("change", (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          document.getElementById("preview").src = reader.result;
-          document.getElementById("preview").classList.remove("hidden");
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-
-    function toggleActivityMenu() {
-      document.getElementById("activityMenu").classList.toggle("hidden");
-    }
-
-    function toggleCustomActivityInput() {
-      const activitySelect = document.getElementById("activity");
-      const customInput = document.getElementById("customActivity");
-
-      if (activitySelect.value === "other") {
-        customInput.classList.remove("hidden");
-        customInput.required = true;
-      } else {
-        customInput.classList.add("hidden");
-        customInput.required = false;
-      }
-    }
-
-    function submitForm() {
-      const studentId = document.getElementById("studentId").value.trim();
-      const studentName = document.getElementById("studentName").value.trim();
-      const chanPee = document.getElementById("chanPee").value;
-      const studentMajor = document.getElementById("studentMajor").value;
-      let activity = document.getElementById("activity").value;
-      if (activity === "other") {
-        activity = document.getElementById("customActivity").value.trim();
-      }
-
-      const imageFile = document.getElementById("imageInput").files[0];
-
-      if (!studentId || !studentName || !chanPee || !studentMajor || !activity || !selectedLatLng || !imageFile) {
-        alert("กรุณากรอกข้อมูลให้ครบทุกช่องและเลือกกิจกรรม");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        const imageBase64 = reader.result;
-        const timestamp = new Date().getTime();
-        
-        // สร้างข้อมูลที่จะบันทึก
-        const activityData = {
-          studentId,
-          studentName,
-          chanPee,
-          studentMajor,
-          activity,
-          lat: selectedLatLng.lat.toFixed(5),
-          lng: selectedLatLng.lng.toFixed(5),
-          imageBase64,
-          timestamp: new Date().toLocaleString(),
-          timestampValue: timestamp
-        };
-        
-        // ตรวจสอบก่อนว่าไม่เคยส่งข้อมูลนี้มาก่อน
-        database.ref('activities').orderByChild('studentId').equalTo(studentId).once('value')
-          .then(snapshot => {
-            let alreadySubmitted = false;
-            snapshot.forEach(childSnapshot => {
-              const data = childSnapshot.val();
-              if (data.activity === activity) {
-                alreadySubmitted = true;
-              }
+    <script>
+        // Show selected section
+        function showSlSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.sl-content-section').forEach(section => {
+                section.classList.remove('active-section');
             });
             
-            if (alreadySubmitted) {
-              alert("คุณได้ส่งข้อมูลกิจกรรมนี้ไปแล้ว");
-              return;
-            }
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active-section');
             
-            // บันทึกข้อมูลใหม่
-            const newActivityRef = database.ref('activities').push();
-            newActivityRef.set(activityData)
-              .then(() => {
-                // เคลียร์ฟอร์ม
-                document.getElementById("studentId").value = "";
-                document.getElementById("studentName").value = "";
-                document.getElementById("chanPee").value = "";
-                document.getElementById("studentMajor").value = "";
-                document.getElementById("activity").value = "";
-                document.getElementById("customActivity").value = "";
-                document.getElementById("customActivity").classList.add("hidden");
-                document.getElementById("imageInput").value = "";
-                document.getElementById("preview").classList.add("hidden");
-                document.getElementById("preview").src = "";
-                
-                // แสดงข้อความสำเร็จ
-                showSuccessModal();
-                
-                // โหลดข้อมูลใหม่
-                loadActivities();
-              })
-              .catch(error => {
-                console.error("Error saving activity:", error);
-                alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
-              });
-          })
-          .catch(error => {
-            console.error("Error checking existing submissions:", error);
-            alert("เกิดข้อผิดพลาดในการตรวจสอบข้อมูล");
-          });
-      };
-    
-      reader.readAsDataURL(imageFile);
-    }
-    
-    function loadActivities() {
-      database.ref('activities').orderByChild('timestampValue').once('value')
-        .then(snapshot => {
-          const activities = {};
-          snapshot.forEach(childSnapshot => {
-            const data = childSnapshot.val();
-            if (!activities[data.activity]) {
-              activities[data.activity] = [];
-            }
-            activities[data.activity].push(data);
-          });
-          renderActivityList(activities);
-        })
-        .catch(error => {
-          console.error("Error loading activities:", error);
-        });
-    }
-    
-    function renderActivityList(activities) {
-      const listEl = document.getElementById("activityList");
-      listEl.innerHTML = "";
-
-      for (const [activity, submissions] of Object.entries(activities)) {
-        const activitySection = document.createElement("div");
-
-        const header = document.createElement("div");
-        header.className = "font-bold text-blue-700 cursor-pointer flex items-center";
-        header.innerHTML = `<span class="flex-1">${activity}</span><span class="text-sm text-gray-500">(${submissions.length} คน)</span>`;
-        header.onclick = () => {
-          const body = header.nextElementSibling;
-          body.classList.toggle("hidden");
-        };
-
-        const body = document.createElement("div");
-        body.className = "ml-3 mt-2 space-y-2 hidden";
-
-        const majorsMap = {};
-
-        submissions.forEach((data) => {
-          if (!majorsMap[data.studentMajor]) {
-            majorsMap[data.studentMajor] = [];
-          }
-          majorsMap[data.studentMajor].push(data);
-        });
-
-        for (const [major, students] of Object.entries(majorsMap)) {
-          const majorHeader = document.createElement("div");
-          majorHeader.className = "font-semibold text-green-600";
-          majorHeader.textContent = `• ${major}`;
-          body.appendChild(majorHeader);
-
-          students.forEach((data) => {
-            const card = document.createElement("div");
-            card.className = "bg-white rounded shadow p-2 cursor-pointer hover:bg-gray-100 text-sm ml-4";
-            card.innerHTML = `
-              <p><strong>${data.studentName}</strong> (${data.studentId})</p>
-              <p class="text-xs text-gray-500">${data.timestamp}</p>
-            `;
-            card.onclick = () => {
-              document.getElementById("modalContent").innerHTML = `
-                <h3 class="text-lg font-bold mb-2">${data.activity}</h3>
-                <p><strong>ชื่อ:</strong> ${data.studentName}</p>
-                <p><strong>รหัส:</strong> ${data.studentId}</p>
-                <p><strong>ชั้นปี:</strong> ${data.chanPee}</p>
-                <p><strong>สาขา:</strong> ${data.studentMajor}</p>
-                <p><strong>เวลา:</strong> ${data.timestamp}</p>
-                <p><strong>พิกัด:</strong> ${data.lat}, ${data.lng}</p>
-                <img src="${data.imageBase64}" class="w-full max-w-full h-auto rounded mt-2" />
-              `;
-              document.getElementById("modal").classList.remove("hidden");
-            };
-            body.appendChild(card);
-          });
+            // Update active nav item
+            document.querySelectorAll('.sl-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Play sound effect
+            playSlSound();
         }
 
-        activitySection.appendChild(header);
-        activitySection.appendChild(body);
-        listEl.appendChild(activitySection);
-      }
-    }
+        // Play sound effect
+        function playSlSound() {
+            const sounds = [
+                'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3',
+                'https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3'
+            ];
+            const audio = new Audio(sounds[Math.floor(Math.random() * sounds.length)]);
+            audio.volume = 0.3;
+            audio.play();
+        }
 
-    function closeModal() {
-      document.getElementById("modal").classList.add("hidden");
-    }
-    
-    function toggleAboutModal() {
-      document.getElementById("aboutModal").classList.remove("hidden");
-    }
-    
-    function closeAboutModal() {
-      document.getElementById("aboutModal").classList.add("hidden");
-    }
-    
-    function showSuccessModal() {
-      document.getElementById("successModal").classList.remove("hidden");
-      
-      setTimeout(() => {
-        closeSuccessModal();
-      }, 3000);
-    }
-    
-    function closeSuccessModal() {
-      document.getElementById("successModal").classList.add("hidden");
-    }
-  </script>
+        // Update status bars
+        function updateStatusBars() {
+            const hpBar = document.querySelector('.hp-bar');
+            const mpBar = document.querySelector('.mp-bar');
+            const expBar = document.querySelector('.exp-bar');
+            
+            // ตั้งค่าเริ่มต้น (สามารถปรับเปลี่ยนได้)
+            const hpPercent = 85;
+            const mpPercent = 65;
+            const expPercent = 45;
+            
+            hpBar.style.width = `${hpPercent}%`;
+            mpBar.style.width = `${mpPercent}%`;
+            expBar.style.width = `${expPercent}%`;
+            
+            // อัพเดทตัวเลขค่า
+            document.querySelector('.hp-bar').parentNode.previousElementSibling.querySelector('.status-value').textContent = 
+                `${Math.round(1000 * hpPercent / 100)}/1000`;
+            document.querySelector('.mp-bar').parentNode.previousElementSibling.querySelector('.status-value').textContent = 
+                `${Math.round(1000 * mpPercent / 100)}/1000`;
+            document.querySelector('.exp-bar').parentNode.previousElementSibling.querySelector('.status-value').textContent = 
+                `${Math.round(1000 * expPercent / 100)}/1000`;
+            
+            // อัพเดทระดับ
+            document.querySelector('.level-text span:nth-child(3)').textContent = 
+                `Next Level: ${expPercent}%`;
+        }
 
-  <!-- Footer -->
-  <footer class="w-full mt-8 p-4 bg-white bg-opacity-80 flex flex-col items-center">
-    <img src="https://sv1.img.in.th/7DBcGq.jpeg" alt="7DBcGq.jpeg" border="0" />
-    <p class="text-sm text-gray-600 mt-2 text-center">
-      พัฒนาเว็บไซต์โดย หัวหน้าฝ่ายโสตทัศนูปกรณ์และโซเชียล สโมสรคณะวิทยาศาสตร์และเทคโนโลยี SRRU
-    </p>
-  </footer>
-  
-  <!-- Success Modal -->
-  <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-6 rounded shadow text-center mx-4 w-full max-w-sm">
-      <svg class="mx-auto h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-      </svg>
-      <p class="text-green-700 text-lg font-semibold mb-4 mt-2">ส่งข้อมูลสำเร็จแล้ว!</p>
-      <button onclick="closeSuccessModal()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 w-full">
-        ตกลง
-      </button>
-    </div>
-  </div>
+        // เรียกฟังก์ชันเมื่อโหลดหน้า
+        window.addEventListener('DOMContentLoaded', () => {
+            updateStatusBars();
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const sections = ['stats', 'skills', 'dungeon', 'quest'];
+            if (e.key >= '1' && e.key <= '4') {
+                const index = parseInt(e.key) - 1;
+                if (index < sections.length) {
+                    showSlSection(sections[index]);
+                    document.querySelectorAll('.sl-nav-item')[index].click();
+                }
+            }
+        });
+    </script>
 </body>
 </html>
